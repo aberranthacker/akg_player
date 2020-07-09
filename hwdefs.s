@@ -1,0 +1,1 @@
+../aku/uknc/hwdefs.s
