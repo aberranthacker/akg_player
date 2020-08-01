@@ -9,160 +9,160 @@
  *******************************************************************************/
 
 # Use hooks for external calls? 0 if the Init/Play/Stop methods are directly called. Will save a few bytes.
-.equiv PLY_AKG_USE_HOOKS, 0
+.equiv USE_HOOKS, 0
 # 1 to have the "stop sounds" code. Set it to 0 if you never plan on stopping your music.
-.equiv PLY_AKG_STOP_SOUNDS, 1
+.equiv STOP_SOUNDS, 1
 # 0 to skip some init code/values, saving memory. Possible if you don't plan on restarting your song.
-.equiv PLY_AKG_FULL_INIT_CODE, 1 
+.equiv FULL_INIT_CODE, 1
 
     PLY_CFG_ConfigurationIsPresent = 1
     PLY_CFG_UseEffects = 1
     PLY_CFG_UseInstrumentLoopTo = 1
     PLY_CFG_NoSoftNoHard = 1
-    PLY_CFG_NoSoftNoHard_Noise = 1        # PLY_AKG_Use_NoiseRegister = 1
-    PLY_CFG_SoftOnly = 1                  # PLY_AKG_UseSoftOnlyOrHardOnly 
-    PLY_CFG_SoftOnly_Noise = 1            # PLY_AKG_UseSoftOnlyOrHardOnly_Noise 
-    PLY_CFG_SoftOnly_SoftwareArpeggio = 1 # PLY_AKG_UseInstrumentArpeggios 
-    PLY_CFG_SoftOnly_SoftwarePitch = 1    # PLY_AKG_UseInstrumentPitchs 
+    PLY_CFG_NoSoftNoHard_Noise = 1        # Use_NoiseRegister = 1
+    PLY_CFG_SoftOnly = 1                  # UseSoftOnlyOrHardOnly
+    PLY_CFG_SoftOnly_Noise = 1            # UseSoftOnlyOrHardOnly_Noise
+    PLY_CFG_SoftOnly_SoftwareArpeggio = 1 # UseInstrumentArpeggios
+    PLY_CFG_SoftOnly_SoftwarePitch = 1    # UseInstrumentPitchs
     PLY_CFG_UseEffect_SetVolume = 1
 
 # Agglomerates some flags, because they are treated the same way by this player.
 #----------------------------------------------------------------------------{{{
         #Special Track Used?
         .ifdef PLY_CFG_UseSpeedTracks
-                PLY_AKG_UseSpecialTracks = 1
+                UseSpecialTracks = 1
         .endif
         .ifdef PLY_CFG_UseEventTracks
-                PLY_AKG_UseSpecialTracks = 1
+                UseSpecialTracks = 1
         .endif
         #SoftwareOnly and HardOnly share some code.
         .ifdef PLY_CFG_SoftOnly
-                PLY_AKG_UseSoftOnlyOrHardOnly = 1
+                UseSoftOnlyOrHardOnly = 1
         .endif
         .ifdef PLY_CFG_HardOnly
-                PLY_AKG_UseSoftOnlyOrHardOnly = 1
+                UseSoftOnlyOrHardOnly = 1
         .endif
         #The same for their noise.
         .ifdef PLY_CFG_SoftOnly_Noise
-                PLY_AKG_UseSoftOnlyOrHardOnly_Noise = 1
+                UseSoftOnlyOrHardOnly_Noise = 1
         .endif
         .ifdef PLY_CFG_HardOnly_Noise
-                PLY_AKG_UseSoftOnlyOrHardOnly_Noise = 1
+                UseSoftOnlyOrHardOnly_Noise = 1
         .endif
-        
+
         #Agglomerates the Forced periods (soft/hard).
         .ifdef PLY_CFG_SoftOnly_ForcedSoftwarePeriod
-                PLY_AKG_UseInstrumentForcedPeriods = 1
+                UseInstrumentForcedPeriods = 1
         .endif
         .ifdef PLY_CFG_HardOnly_ForcedHardwarePeriod
-                PLY_AKG_UseInstrumentForcedPeriods = 1
+                UseInstrumentForcedPeriods = 1
         .endif
         .ifdef PLY_CFG_SoftToHard_ForcedSoftwarePeriod
-                PLY_AKG_UseInstrumentForcedPeriods = 1
+                UseInstrumentForcedPeriods = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_ForcedHardwarePeriod
-                PLY_AKG_UseInstrumentForcedPeriods = 1
+                UseInstrumentForcedPeriods = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_ForcedSoftwarePeriod
-                PLY_AKG_UseInstrumentForcedPeriods = 1
+                UseInstrumentForcedPeriods = 1
         .endif
         #Agglomerates the Instrument Arpeggios (soft/hard).
         .ifdef PLY_CFG_SoftOnly_SoftwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         .ifdef PLY_CFG_SoftToHard_SoftwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         .ifdef PLY_CFG_HardOnly_HardwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_HardwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_SoftwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_HardwareArpeggio
-                PLY_AKG_UseInstrumentArpeggios = 1
+                UseInstrumentArpeggios = 1
         .endif
         #Agglomerates the Instrument Pitchs (soft/hard).
         .ifdef PLY_CFG_SoftOnly_SoftwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         .ifdef PLY_CFG_SoftToHard_SoftwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         .ifdef PLY_CFG_HardOnly_HardwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_HardwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_SoftwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_HardwarePitch
-                PLY_AKG_UseInstrumentPitchs = 1
+                UseInstrumentPitchs = 1
         .endif
         #Agglomerates the Instrument Forced Periods, Arpeggios and Pitchs (soft/hard).
-        .ifdef PLY_AKG_UseInstrumentForcedPeriods
-                PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
+        .ifdef UseInstrumentForcedPeriods
+                UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
         .endif
-        .ifdef PLY_AKG_UseInstrumentArpeggios
-                PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
+        .ifdef UseInstrumentArpeggios
+                UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
         .endif
-        .ifdef PLY_AKG_UseInstrumentPitchs
-                PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
+        .ifdef UseInstrumentPitchs
+                UseInstrumentForcedPeriodsOrArpeggiosOrPitchs = 1
         .endif
-        
+
         #Agglomerates the Retrig flags for SoftToHard, HardToSoft, SoftAndHard.
         .ifdef PLY_CFG_SoftToHard_Retrig
-                PLY_AKG_UseRetrig_StoH_HtoS_SandH = 1
+                UseRetrig_StoH_HtoS_SandH = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_Retrig
-                PLY_AKG_UseRetrig_StoH_HtoS_SandH = 1
+                UseRetrig_StoH_HtoS_SandH = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_Retrig
-                PLY_AKG_UseRetrig_StoH_HtoS_SandH = 1
+                UseRetrig_StoH_HtoS_SandH = 1
         .endif
         #Agglomerates the noise flags for SoftToHard, HardToSoft, SoftAndHard.
         .ifdef PLY_CFG_SoftToHard_Noise
-                PLY_AKG_UseNoise_StoH_HtoS_SandH = 1
+                UseNoise_StoH_HtoS_SandH = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_Noise
-                PLY_AKG_UseNoise_StoH_HtoS_SandH = 1
+                UseNoise_StoH_HtoS_SandH = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_Noise
-                PLY_AKG_UseNoise_StoH_HtoS_SandH = 1
+                UseNoise_StoH_HtoS_SandH = 1
         .endif
         #Agglomerates the noise flags to know if the code about R6 must be compiled.
         .ifdef PLY_CFG_NoSoftNoHard_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
         .ifdef PLY_CFG_SoftOnly_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
         .ifdef PLY_CFG_HardOnly_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
         .ifdef PLY_CFG_SoftToHard_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
         .ifdef PLY_CFG_HardToSoft_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
         .ifdef PLY_CFG_SoftAndHard_Noise
-                PLY_AKG_Use_NoiseRegister = 1
+                Use_NoiseRegister = 1
         .endif
-        
+
         #Agglomerates the effect volume in/out.
         .ifdef PLY_CFG_UseEffect_VolumeIn
-                 PLY_AKG_UseEffect_VolumeSlide = 1
+                 UseEffect_VolumeSlide = 1
         .endif
         .ifdef PLY_CFG_UseEffect_VolumeOut
-                 PLY_AKG_UseEffect_VolumeSlide = 1
+                 UseEffect_VolumeSlide = 1
         .endif
-        
+
         #Agglomerates the Arpeggios Table effects.
         .ifdef PLY_CFG_UseEffect_Arpeggio3Notes
                 PLY_AKS_UseEffect_Arpeggio = 1
@@ -173,7 +173,7 @@
         .ifdef PLY_CFG_UseEffect_ArpeggioTable
                 PLY_AKS_UseEffect_Arpeggio = 1
         .endif
-        
+
         #Agglomerates the PitchUp/Down effects.
         .ifdef PLY_CFG_UseEffect_PitchUp
                 PLY_AKS_UseEffect_PitchUpOrDown = 1
@@ -190,7 +190,7 @@
         .ifdef PLY_CFG_UseEffect_PitchGlide
                 PLY_AKS_UseEffect_PitchUpOrDownOrGlide = 1
         .endif
-        
+
         #Agglomerates a special flag combining ArpeggioTable and PitchTable.
         .ifdef PLY_AKS_UseEffect_Arpeggio
                 PLY_AKS_UseEffect_ArpeggioTableOrPitchTable = 1
@@ -200,22 +200,22 @@
         .endif
 #----------------------------------------------------------------------------}}}
 
-       .equiv PLY_AKG_OPCODE_CLC, 000241 # Opcode for "or a".
-       .equiv PLY_AKG_OPCODE_SEC, 000261 # Opcode for "scf".
+       .equiv OPCODE_CLC, 000241 # Opcode for "or a".
+       .equiv OPCODE_SEC, 000261 # Opcode for "scf".
 
         # Includes the sound effects player, if wanted.
         # Important to do it as soon as possible, so that
         # its code can react to the Player Configuration and possibly alter it.
-       .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS
+       .ifdef MANAGE_SOUND_EFFECTS
            .include "PlayerAkg_SoundEffects.asm"
-       .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
+       .endif # MANAGE_SOUND_EFFECTS
         # [[INSERT_SOUND_EFFECT_SOURCE]] # A tag for test units.
                                          # Don't touch or you're dead.
 
 # Initializes the player.
 # IN:    R5 = music address.
 #        R0 = subsong index (>=0).
-PLY_AKG_Init: #--------------------------------------------------------------{{{
+Init: #--------------------------------------------------------------{{{
     .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC
         ADD $4,R5 # Skip the tag
        .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:432
@@ -235,12 +235,12 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
        .error
     .endif # PLY_CFG_UseEffects
 
-        MOV  (R5)+,@$PLY_AKG_InstrumentsTable
+        MOV  (R5)+,@$InstrumentsTable
 
     .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:456
         MOV  (R5)+,R3
-        MOV  R3,@$PLY_AKG_Channel_ReadEffects_EffectBlocks1
-        MOV  R3,@$PLY_AKG_Channel_ReadEffects_EffectBlocks2
+        MOV  R3,@$Channel_ReadEffects_EffectBlocks1
+        MOV  R3,@$Channel_ReadEffects_EffectBlocks2
     .else
        .error
     .endif # PLY_CFG_UseEffects
@@ -251,155 +251,173 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
 
         MOV  (R5),R5 # R5 points on the Subsong metadata.
         ADD  $5,R5   # Skips the replay frequency, digichannel, psg count, loop start index, end index.
-        MOVB (R5)+,@$PLY_AKG_CurrentSpeed
-        MOVB (R5)+,@$PLY_AKG_BaseNoteIndex
+        MOVB (R5)+,@$CurrentSpeed
+        MOVB (R5)+,@$BaseNoteIndex
         INC  R5 # align the pointer on word
-        MOV  R5,@$PLY_AKG_ReadLinker_PtLinker
+        MOV  R5,@$ReadLinker_PtLinker
 
         # Initializes values. You can remove this part if you don't stop/restart your song.
-   .if PLY_AKG_FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:492
-        MOV  $PLY_AKG_InitTable0,R5
-       .set words_count, (PLY_AKG_InitTable0_End - PLY_AKG_InitTable0) >> 1
+   .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:492
+        MOV  $InitTable0,R5
+       .set words_count, (InitTable0_End - InitTable0) >> 1
         MOV  $words_count,R1
         CLR  R2
-        CALL PLY_AKG_Init_ReadWordsAndFill
+        CALL Init_ReadWordsAndFill
 
-        MOV  $PLY_AKG_InitTable1,R5
-       .set words_count, (PLY_AKG_InitTable1_End - PLY_AKG_InitTable1) >> 1
+        MOV  $InitTable1,R5
+       .set words_count, (InitTable1_End - InitTable1) >> 1
         MOV  $words_count,R1
         INC  R2
-        CALL PLY_AKG_Init_ReadWordsAndFill
+        CALL Init_ReadWordsAndFill
 
-        MOV  $PLY_AKG_InitTableOrA,R5
-       .set words_count, (PLY_AKG_InitTableOrA_End - PLY_AKG_InitTableOrA) >> 1
+        MOV  $InitTableOrA,R5
+       .set words_count, (InitTableOrA_End - InitTableOrA) >> 1
         MOV  $words_count,R1
-        MOV  $PLY_AKG_OPCODE_CLC,R2 # CLC opcode
-        CALL PLY_AKG_Init_ReadWordsAndFill
+        MOV  $OPCODE_CLC,R2 # CLC opcode
+        CALL Init_ReadWordsAndFill
 
        .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:511
            .error
        .endif
-   .endif # PLY_AKG_FULL_INIT_CODE 
+   .endif # FULL_INIT_CODE
 
         # Stores the address to the empty instrument *data* (header skipped).
-        MOV  @$PLY_AKG_InstrumentsTable,R5
+        MOV  @$InstrumentsTable,R5
         MOV  (R5),R5
         INC  R5 # Skip the header
-        MOV  R5,@$PLY_AKG_EmptyInstrumentDataPt
+        MOV  R5,@$EmptyInstrumentDataPt
         # Sets all the instrument to "empty".
-        MOV  R5,@$PLY_AKG_Channel1_PtInstrument
-        MOV  R5,@$PLY_AKG_Channel2_PtInstrument
-        MOV  R5,@$PLY_AKG_Channel3_PtInstrument
+        MOV  R5,@$Channel1_PtInstrument
+        MOV  R5,@$Channel2_PtInstrument
+        MOV  R5,@$Channel3_PtInstrument
 
         # If sound effects, clears the SFX state.
-       .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:550
-        CLR  @$PLY_AKG_Channel1_SoundEffectData
-        CLR  @$PLY_AKG_Channel2_SoundEffectData
-        CLR  @$PLY_AKG_Channel3_SoundEffectData
-       .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
+       .ifdef MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:550
+        CLR  @$Channel1_SoundEffectData
+        CLR  @$Channel2_SoundEffectData
+        CLR  @$Channel3_SoundEffectData
+       .endif # MANAGE_SOUND_EFFECTS
 
-RETURN # PLY_AKG_Init -------------------------------------------------------}}}
+RETURN # Init -------------------------------------------------------}}}
 
-   .if PLY_AKG_FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:559
+   .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:559
         # Fills all the read addresses with a byte.
         # IN:    R5 = table where the addresses are.
         #        R1 = how many items in the table + 1.
         #        R2 = byte to fill.
-PLY_AKG_Init_ReadWordsAndFill_Loop:
+Init_ReadWordsAndFill_Loop:
         MOV  R2,@(R5)+
-PLY_AKG_Init_ReadWordsAndFill:
-        SOB  R1,PLY_AKG_Init_ReadWordsAndFill_Loop
+Init_ReadWordsAndFill:
+        SOB  R1,Init_ReadWordsAndFill_Loop
 
         RETURN
 
 # Table initializing some data with 0.
-PLY_AKG_InitTable0: # playerAkg/sources/PlayerAkg.asm:576
-       .word PLY_AKG_Channel1_InvertedVolumeIntegerAndDecimal 
-       .word PLY_AKG_Channel2_InvertedVolumeIntegerAndDecimal 
-       .word PLY_AKG_Channel3_InvertedVolumeIntegerAndDecimal 
+InitTable0: # playerAkg/sources/PlayerAkg.asm:576
+       .word Channel1_InvertedVolumeIntegerAndDecimal
+       .word Channel2_InvertedVolumeIntegerAndDecimal
+       .word Channel3_InvertedVolumeIntegerAndDecimal
 
        .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
-        .word PLY_AKG_Channel1_Pitch
-        .word PLY_AKG_Channel2_Pitch
-        .word PLY_AKG_Channel3_Pitch
+        .word Channel1_Pitch
+        .word Channel2_Pitch
+        .word Channel3_Pitch
        .endif #PLY_AKS_UseEffect_PitchUpOrDown
 
        .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
-        .word PLY_AKG_Retrig
+        .word Retrig
        .endif #PLY_CFG_UseRetrig
-PLY_AKG_InitTable0_End:
+InitTable0_End:
 
-PLY_AKG_InitTable1: # playerAkg/sources/PlayerAkg.asm:598
-        .word PLY_AKG_PatternDecreasingHeight
-        .word PLY_AKG_TickDecreasingCounter
-PLY_AKG_InitTable1_End:
+InitTable1: # playerAkg/sources/PlayerAkg.asm:598
+        .word PatternDecreasingHeight
+        .word TickDecreasingCounter
+InitTable1_End:
 
-PLY_AKG_InitTableOrA: # playerAkg/sources/PlayerAkg.asm:605 ----------------{{{
-       .ifdef PLY_AKG_UseEffect_VolumeSlide   # CONFIG SPECIFIC
+InitTableOrA: # playerAkg/sources/PlayerAkg.asm:605 ----------------{{{
+       .ifdef UseEffect_VolumeSlide   # CONFIG SPECIFIC
        .error
-       .word PLY_AKG_Channel1_IsVolumeSlide
-       .word PLY_AKG_Channel2_IsVolumeSlide
-       .word PLY_AKG_Channel3_IsVolumeSlide
-       .endif # PLY_AKG_UseEffect_VolumeSlide
+       .word Channel1_IsVolumeSlide
+       .word Channel2_IsVolumeSlide
+       .word Channel3_IsVolumeSlide
+       .endif # UseEffect_VolumeSlide
        .ifdef PLY_AKS_UseEffect_Arpeggio      # CONFIG SPECIFIC
        .error
-       .word PLY_AKG_Channel1_IsArpeggioTable
-       .word PLY_AKG_Channel2_IsArpeggioTable
-       .word PLY_AKG_Channel3_IsArpeggioTable
+       .word Channel1_IsArpeggioTable
+       .word Channel2_IsArpeggioTable
+       .word Channel3_IsArpeggioTable
        .endif # PLY_AKS_UseEffect_Arpeggio
        .ifdef PLY_CFG_UseEffect_PitchTable    # CONFIG SPECIFIC
        .error
-       .word PLY_AKG_Channel1_IsPitchTable
-       .word PLY_AKG_Channel2_IsPitchTable
-       .word PLY_AKG_Channel3_IsPitchTable
+       .word Channel1_IsPitchTable
+       .word Channel2_IsPitchTable
+       .word Channel3_IsPitchTable
        .endif # PLY_CFG_UseEffect_PitchTable
        .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
        .error
-       .word PLY_AKG_Channel1_IsPitch
-       .word PLY_AKG_Channel2_IsPitch
-       .word PLY_AKG_Channel3_IsPitch
+       .word Channel1_IsPitch
+       .word Channel2_IsPitch
+       .word Channel3_IsPitch
        .endif # PLY_AKS_UseEffect_PitchUpOrDown
-PLY_AKG_InitTableOrA_End: #-------------------------------------------------}}}
-   .endif # PLY_AKG_FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:629
+InitTableOrA_End: #-------------------------------------------------}}}
+   .endif # FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:629
 
-        # New line! Is the Pattern ended? Not as long as there are lines to read.
-        MOV  (PC)+,R0; PLY_AKG_PatternDecreasingHeight: .word 1 # playerAkg/sources/PlayerAkg.asm:694
+   .if STOP_SOUNDS # playerAkg/sources/PlayerAkg.asm:654
+        # Stops the music.
+        # This code can be removed if you don't intend to stop it!
+Stop:
+        # Only useful because the SendPSGRegisters restores it at the end.
+        MOV  SP,@$SaveSP
+        CLRB @$PSGReg8
+        CLR  @$PSGReg9_10_Instr
+        MOV  $0b00111111, @$PSGReg7
+        JMP  SendPSGRegisters
+   .endif # STOP_SOUNDS
 
 
 ################################################################################
 #                      Plays one frame of the subsong.                         #
 ################################################################################
-PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676
-        MOV  SP,@$PLY_AKG_SaveSP
+Play: # playerAkg/sources/PlayerAkg.asm:676
+        MOV  SP,@$SaveSP
 
    .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
        .error
    .endif # PLY_CFG_UseEventTracks
 
         # Decreases the tick counter. If 0 is reached, a new line must be read.
-        MOV  (PC)+,R0; PLY_AKG_TickDecreasingCounter: .word 1
+        MOV  (PC)+,R0; TickDecreasingCounter: .word 1
         DEC  R0
+        BZE  10$ # new line
         # Jumps if there is no new line: continues playing the sound stream.
-        BZE  PLY_AKG_ReadLinker
-        JMP  PLY_AKG_SetSpeedBeforePlayStreams
+        JMP  SetSpeedBeforePlayStreams
 
-        # New line! Is the Pattern ended?
+10$:    # New line! Is the Pattern ended?
         # Not as long as there are lines to read.
-PLY_AKG_ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
-        MOV  (PC)+,SP; PLY_AKG_ReadLinker_PtLinker: .word 0
+        MOV  (PC)+,R0; PatternDecreasingHeight: .word 1
+        DEC  R0
+        BZE  20$ # pattern ended
+        # Jumps if the pattern isn't ended.
+        JMP  SetCurrentLineBeforeReadLine
+
+20$:    # New pattern!
+        # Reads the Linker. This is called at the start of the song,
+        # or at the end of every position.
+ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
+        MOV  (PC)+,SP; ReadLinker_PtLinker: .word 0
         # Reads the address of each Track.
         MOV  (SP)+,R5
-        BNZ  PLY_AKG_ReadLinker_NoLoop
+        BNZ  ReadLinker_NoLoop
         # End of the song.
         MOV  (SP)+,SP # read loop address
         MOV  (SP)+,R5 # Reads once again the address of Track 1, in the pattern looped to.
-PLY_AKG_ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
-        MOV  R5,@$PLY_AKG_Channel1_PtTrack
-        MOV  (SP)+,@$PLY_AKG_Channel2_PtTrack
-        MOV  (SP)+,@$PLY_AKG_Channel3_PtTrack
+ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
+        MOV  R5,@$Channel1_PtTrack
+        MOV  (SP)+,@$Channel2_PtTrack
+        MOV  (SP)+,@$Channel3_PtTrack
         # Reads the address of the LinkerBlock.
         MOV  (SP)+,R5
-        MOV  SP,@$PLY_AKG_ReadLinker_PtLinker
+        MOV  SP,@$ReadLinker_PtLinker
         MOV  R5,SP
 
         # Reads the LinkerBlock. SP = LinkerBlock.
@@ -413,48 +431,48 @@ PLY_AKG_ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
    .endif # PLY_CFG_UseTranspositions
 
         # Reads the transposition2 and 3.
-   .ifdef PLY_AKG_UseSpecialTracks # CONFIG SPECIFIC
+   .ifdef UseSpecialTracks # CONFIG SPECIFIC
        .error
        .ifndef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
            .error
        .endif # PLY_CFG_UseTranspositions
-   .endif # PLY_AKG_UseSpecialTracks
+   .endif # UseSpecialTracks
 
    .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
        .error
    .endif # PLY_CFG_UseTranspositions
 
-   .ifdef PLY_AKG_UseSpecialTracks # CONFIG SPECIFIC
+   .ifdef UseSpecialTracks # CONFIG SPECIFIC
        .error
         # Reads the special Tracks addresses.
        .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
            .error
        .endif # PLY_CFG_UseSpeedTracks
-        
+
        .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
            .error
        .endif # PLY_CFG_UseEventTracks
-   .endif # PLY_AKG_UseSpecialTracks
-        
+   .endif # UseSpecialTracks
+
         # Forces the reading of every Track and Special Track.
    .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
-        CLR  @$PLY_AKG_SpeedTrack_WaitCounter
+        CLR  @$SpeedTrack_WaitCounter
    .endif # PLY_CFG_UseSpeedTracks
 
    .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-        CLR  @$PLY_AKG_EventTrack_WaitCounter
+        CLR  @$EventTrack_WaitCounter
    .endif # PLY_CFG_UseEventTracks
 
-        CLR  @$PLY_AKG_Channel1_WaitCounter
-        CLR  @$PLY_AKG_Channel2_WaitCounter
-        CLR  @$PLY_AKG_Channel3_WaitCounter
+        CLR  @$Channel1_WaitCounter
+        CLR  @$Channel2_WaitCounter
+        CLR  @$Channel3_WaitCounter
         MOV  R2,R0
-PLY_AKG_SetCurrentLineBeforeReadLine: # playerAkg/sources/PlayerAkg.asm:779
-        MOV  R0,@$PLY_AKG_PatternDecreasingHeight
- 
+SetCurrentLineBeforeReadLine: # playerAkg/sources/PlayerAkg.asm:779
+        MOV  R0,@$PatternDecreasingHeight
+
 
         # Reads the new line (notes, effects, Special Tracks, etc.).
-PLY_AKG_ReadLine: # playerAkg/sources/PlayerAkg.asm:784
+ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         # Reads the Speed Track.
         #-------------------------------------------------------------------
    .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
@@ -465,7 +483,7 @@ PLY_AKG_ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         #-------------------------------------------------------------------
    .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
        .error # playerAkg/sources/PlayerAkg.asm:828
-   .endif # PLY_CFG_UseEventTracks 
+   .endif # PLY_CFG_UseEventTracks
 
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -473,16 +491,16 @@ PLY_AKG_ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         * Use a Macro for each channel, but the code is duplicated. *
         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-.macro PLY_AKG_ReadTrack channelNumber
+.macro ReadTrack cN # playerAkg/sources/PlayerAkg.asm:873 -------------------{{{
         # Lines to wait?
-        DEC  (PC)+; PLY_AKG_Channel\channelNumber\()_WaitCounter: .word 0
-        BMI  PLY_AKG_Channel\channelNumber\()_ReadTrack
+        DEC  (PC)+; Channel\cN\()_WaitCounter: .word 0
+        BMI  Channel\cN\()_ReadTrack
         # Still some lines to wait.
-        JMP  PLY_AKG_Channel\channelNumber\()_ReadCellEnd
+        JMP  Channel\cN\()_ReadCellEnd
 
-PLY_AKG_Channel\channelNumber\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
+Channel\cN\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
         # Points on the Cell to read.
-        MOV  (PC)+,R5; PLY_AKG_Channel\channelNumber\()_PtTrack: .word 0
+        MOV  (PC)+,R5; Channel\cN\()_PtTrack: .word 0
         # Reads note data. It can be a note, a wait...
 
         CLR  R2
@@ -491,168 +509,170 @@ PLY_AKG_Channel\channelNumber\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:88
         BIC  $0xFFC0,R0 # R0 = data
         # 0-59: note.
         # "CMP" is preferred to "SUB" so that the "note" branch (the slowest) is note-ready.
-        CMP  R0,$60 
-        BLO  PLY_AKG_Channel\channelNumber\()_Note
+        CMP  R0,$60
+        BLO  Channel\cN\()_Note
         SUB  $60,R0
-       .jmp  EQ, PLY_AKG_Channel\channelNumber\()_MaybeEffects # 60 = no note, but maybe effects.
+       .jmp  EQ, Channel\cN\()_MaybeEffects # 60 = no note, but maybe effects.
         DEC  R0
-        BZE  PLY_AKG_Channel\channelNumber\()_Wait             # 61 = wait, no effect.
+        BZE  Channel\cN\()_Wait             # 61 = wait, no effect.
         DEC  R0
-        BZE  PLY_AKG_Channel\channelNumber\()_SmallWait        # 62 = small wait, no effect.
+        BZE  Channel\cN\()_SmallWait        # 62 = small wait, no effect.
         # 63 = escape code for note, maybe effects.
         # Reads the note in the next byte (HL has already been incremented).
         MOVB (R5)+,R0
-        BR   PLY_AKG_Channel\channelNumber\()_AfterNoteKnown
+        BR   Channel\cN\()_AfterNoteKnown
 
         # Small wait, no effect.
-PLY_AKG_Channel\channelNumber\()_SmallWait: # playerAkg/sources/PlayerAkg.asm
+Channel\cN\()_SmallWait: # playerAkg/sources/PlayerAkg.asm
         MOV  R2,R0 # Uses bit 6/7 to indicate how many lines to wait.
         ASH  $-6,R0
         INC  R0 # This wait start at 2 lines, to 5.
-        MOV  R0,@$PLY_AKG_Channel\channelNumber\()_WaitCounter
-        BR   PLY_AKG_Channel\channelNumber\()_BeforeEnd_StoreCellPointer
+        MOV  R0,@$Channel\cN\()_WaitCounter
+        BR   Channel\cN\()_BeforeEnd_StoreCellPointer
 
         # Wait, no effect.
-PLY_AKG_Channel\channelNumber\()_Wait: # playerAkg/sources/PlayerAkg.asm
+Channel\cN\()_Wait: # playerAkg/sources/PlayerAkg.asm
         # Reads the wait value on the next byte (HL has already been incremented).
-        MOVB (R5)+,@$PLY_AKG_Channel\channelNumber\()_WaitCounter
-        BR   PLY_AKG_Channel\channelNumber\()_BeforeEnd_StoreCellPointer
+        MOVB (R5)+,@$Channel\cN\()_WaitCounter
+        BR   Channel\cN\()_BeforeEnd_StoreCellPointer
 
         # Little subcode put here, called just below. A bit dirty, but avoids long jump.
-PLY_AKG_Channel\channelNumber\()_SameInstrument: # playerAkg/sources/PlayerAkg.asm:931
+Channel\cN\()_SameInstrument: # playerAkg/sources/PlayerAkg.asm:931
         # No new instrument. The instrument pointer must be reset.
         MOV  (PC)+,@(PC)+
-        PLY_AKG_Channel\channelNumber\()_PtBaseInstrument:
-       .word 0, PLY_AKG_Channel\channelNumber\()_PtInstrument
-        BR   PLY_AKG_Channel\channelNumber\()_AfterInstrument
+        Channel\cN\()_PtBaseInstrument:
+       .word 0, Channel\cN\()_PtInstrument
+        BR   Channel\cN\()_AfterInstrument
 
         # A note has been found, plus maybe an Instrument and effects.
         # R0 = note. R2 = still has the New Instrument/Effects flags.
-PLY_AKG_Channel\channelNumber\()_Note: # playerAkg/sources/PlayerAkg.asm:943
+Channel\cN\()_Note: # playerAkg/sources/PlayerAkg.asm:943
     # Declares this only for the first channel, else refers to it.
-   .if \channelNumber == 1
+   .if \cN == 1
         # The encoded note is only from a 4 octave range, but the first note
         # depends on the best window, determined by the song generator.
-        ADD  (PC)+,R0; PLY_AKG_BaseNoteIndex: .word 0
+        ADD  (PC)+,R0; BaseNoteIndex: .word 0
    .else
-        ADD  @$PLY_AKG_BaseNoteIndex,R0
+        ADD  @$BaseNoteIndex,R0
    .endif
 
-PLY_AKG_Channel\channelNumber\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
+Channel\cN\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
    .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
         # Adds the Track transposition.
-        ADD  (PC)+,R0; PLY_AKG_Channel\channelNumber\()_Transposition: .word 0
+        ADD  (PC)+,R0; Channel\cN\()_Transposition: .word 0
    .endif # PLY_CFG_UseTranspositions
 
-        MOVB R0,@$PLY_AKG_Channel\channelNumber\()_TrackNote
+        MOVB R0,@$Channel\cN\()_TrackNote
 
         # HL = next data. C = data byte.
         ROLB R2 # New Instrument?
-        BCC  PLY_AKG_Channel\channelNumber\()_SameInstrument
+        BCC  Channel\cN\()_SameInstrument
         # Gets the new Instrument.
         CLR  R4
         BISB (R5)+,R4
 
         ASL  R4
-   .if \channelNumber == 1 # Declares this only for the first channel, else refers to it.
+   .if \cN == 1 # Declares this only for the first channel, else refers to it.
         # Points on the Instruments table of the music (set on song initialization).
-        ADD  (PC)+,R4; PLY_AKG_InstrumentsTable: .word 0 # playerAkg/sources/PlayerAkg.asm:982
+        ADD  (PC)+,R4; InstrumentsTable: .word 0 # playerAkg/sources/PlayerAkg.asm:982
    .else
         # Points on the Instruments table of the music (set on song initialization).
-        ADD  @$PLY_AKG_InstrumentsTable,R4
+        ADD  @$InstrumentsTable,R4
    .endif
         MOV  (R4),R4
-          
-        # No need to store an "original speed" if "force instrument speed" effect is not used.
+
+        # No need to store an "original speed" if "force instrument speed"
+        # effect is not used.
    .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC
-        MOVB (R4)+,@$PLY_AKG_Channel\channelNumber\()_InstrumentOriginalSpeed
+        MOVB (R4)+,@$Channel\cN\()_InstrumentOriginalSpeed
    .else
-        MOVB (R4)+,@$PLY_AKG_Channel\channelNumber\()_InstrumentSpeed
+        MOVB (R4)+,@$Channel\cN\()_InstrumentSpeed
    .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed
-        MOV  R4,@$PLY_AKG_Channel\channelNumber\()_PtInstrument
+        MOV  R4,@$Channel\cN\()_PtInstrument
         # Useful when playing another note with the same instrument.
-        MOV  R4,@$PLY_AKG_Channel\channelNumber\()_PtBaseInstrument
+        MOV  R4,@$Channel\cN\()_PtBaseInstrument
 
 
-PLY_AKG_Channel\channelNumber\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
+Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
         # There is a new note. The instrument pointer has already been reset.
         # -------------------------------------------------------------------
         # Instrument number is set.
         # Arpeggio and Pitch Table are reset.
-        
+
         # The track pitch and glide, instrument step are reset.
    .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
-        CLR  @$PLY_AKG_Channel\channelNumber\()_Pitch
+        CLR  @$Channel\cN\()_Pitch
    .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
 
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-        CLR  @$PLY_AKG_Channel\channelNumber\()_ArpeggioTableCurrentStep
+        CLR  @$Channel\cN\()_ArpeggioTableCurrentStep
    .endif # PLY_AKS_UseEffect_Arpeggio
 
    .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
-        CLR  @$PLY_AKG_Channel\channelNumber\()_PitchTableCurrentStep
+        CLR  @$Channel\cN\()_PitchTableCurrentStep
    .endif # PLY_CFG_UseEffect_PitchTable
-        CLR  @$PLY_AKG_Channel\channelNumber\()_InstrumentStep
-        
+        CLR  @$Channel\cN\()_InstrumentStep
+
     # If the "force instrument speed" effect is used,
     # the instrument speed must be reset to its original value.
    .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC
        .error
-        MOV  (PC)+,@(PC)+; PLY_AKG_Channel\channelNumber\()_InstrumentOriginalSpeed:
-       .word 0,  PLY_AKG_Channel\channelNumber\()_InstrumentSpeed
+        MOV  (PC)+,@(PC)+;
+        Channel\cN\()_InstrumentOriginalSpeed:
+       .word 0,  Channel\cN\()_InstrumentSpeed
    .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed
-        
+
    .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
        .error
-        MOV  $PLY_AKG_OPCODE_CLC, @$PLY_AKG_Channel\channelNumber\()_IsPitch
+        MOV  $OPCODE_CLC, @$Channel\cN\()_IsPitch
    .endif # PLY_AKS_UseEffect_PitchUpOrDown
-        
+
         # Resets the speed of the Arpeggio and the Pitch.
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
        .error
-        MOV  @$PLY_AKG_Channel\channelNumber\()_ArpeggioBaseSpeed, @$PLY_AKG_Channel\channelNumber\()_ArpeggioTableSpeed
+        MOV  @$Channel\cN\()_ArpeggioBaseSpeed, @$Channel\cN\()_ArpeggioTableSpeed
    .endif # PLY_AKS_UseEffect_Arpeggio
 
    .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
        .error
-        MOV  @$PLY_AKG_Channel\channelNumber\()_PitchBaseSpeed, @$PLY_AKG_Channel\channelNumber\()_PitchTableSpeed
+        MOV  @$Channel\cN\()_PitchBaseSpeed, @$Channel\cN\()_PitchTableSpeed
    .endif # PLY_CFG_UseEffect_PitchTable
 
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
        .error
         # Points to the first value of the Arpeggio.
-        MOV  @$PLY_AKG_Channel\channelNumber\()_ArpeggioTableBase, @$PLY_AKG_Channel\channelNumber\()_ArpeggioTable
+        MOV  @$Channel\cN\()_ArpeggioTableBase, @$Channel\cN\()_ArpeggioTable
    .endif # PLY_AKS_UseEffect_Arpeggio
 
    .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
        .error
         # Points to the first value of the Pitch.
-        MOV  @$PLY_AKG_Channel\channelNumber\()_PitchTableBase, @$PLY_AKG_Channel\channelNumber\()_PitchTable
+        MOV  @$Channel\cN\()_PitchTableBase, @$Channel\cN\()_PitchTable
    .endif # PLY_CFG_UseEffect_PitchTable
 
    .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC
         # Effects?
         ROLB R2
-       .jmp  CS,PLY_AKG_Channel\channelNumber\()_ReadEffects
+       .jmp  CS, Channel\cN\()_ReadEffects
    .endif # PLY_CFG_UseEffects
 
         # No effects. Nothing more to read for this cell.
-PLY_AKG_Channel\channelNumber\()_BeforeEnd_StoreCellPointer:
-        MOV  R5,@$PLY_AKG_Channel\channelNumber\()_PtTrack
-PLY_AKG_Channel\channelNumber\()_ReadCellEnd:
+Channel\cN\()_BeforeEnd_StoreCellPointer:
+        MOV  R5, @$Channel\cN\()_PtTrack
+Channel\cN\()_ReadCellEnd:
 
-.endm # PLY_AKG_ReadTrack
+.endm # ReadTrack # playerAkg/sources/PlayerAkg.asm:1081 --------------------}}}
 
         # Generates the code for each channel, from the macro above.
-        PLY_AKG_ReadTrack 1
-        PLY_AKG_ReadTrack 2
-        PLY_AKG_ReadTrack 3
+        ReadTrack 1
+        ReadTrack 2
+        ReadTrack 3
 
 
 
-        MOV  (PC)+,R0; PLY_AKG_CurrentSpeed: .word 0
-PLY_AKG_SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
-        MOV  R0,@$PLY_AKG_TickDecreasingCounter
+        MOV  (PC)+,R0; CurrentSpeed: .word 0
+SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
+        MOV  R0,@$TickDecreasingCounter
 
 
 
@@ -661,46 +681,47 @@ PLY_AKG_SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
          * Uses a macro instead of duplicating the code.     *
          * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-.macro PLY_AKG_ApplyTrailingEffects channelNumber #--------------------------{{{
+.macro ApplyTrailingEffects cN #--------------------------{{{
 
         # Use Volume slide?
         #----------------------------
-        MOV  (PC)+,R5; PLY_AKG_Channel\channelNumber\()_InvertedVolumeIntegerAndDecimal: .word 0 
+        MOV  (PC)+,R5; Channel\cN\()_InvertedVolumeIntegerAndDecimal: .word 0
 
         # playerAkg/sources/PlayerAkg.asm:1127
-       .equiv PLY_AKG_Channel\channelNumber\()_InvertedVolumeInteger, PLY_AKG_Channel\channelNumber\()_InvertedVolumeIntegerAndDecimal + 1
+   .equiv Channel\cN\()_InvertedVolumeInteger, Channel\cN\()_InvertedVolumeIntegerAndDecimal + 1
 
-   .ifdef PLY_AKG_UseEffect_VolumeSlide # CONFIG SPECIFIC #------------------{{{
+   .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC #------------------{{{
+       .error
         # Is there a Volume Slide ? Automodified. SCF if yes, OR A if not.
-        PLY_AKG_Channel\channelNumber\()_IsVolumeSlide: CLC
+        Channel\cN\()_IsVolumeSlide: CLC
 
-        BCC nc,PLY_AKG_Channel\channelNumber\()_VolumeSlide_End
- 
+        BCC  Channel\cN\()_VolumeSlide_End
+
         # May be negative.
-        MOV  (PC)+,R3; PLY_AKG_Channel\channelNumber\()_VolumeSlideValue: .word 0 
+        MOV  (PC)+,R3; Channel\cN\()_VolumeSlideValue: .word 0
 
         ADD  R3,R5
-        BMI  PLY_AKG_Channel\channelNumber\()_VolumeNotOverflow
+        BMI  Channel\cN\()_VolumeNotOverflow
 
         CLR  R5 # No need to set L to 0... Shouldn't make any hearable difference.
-        BR   PLY_AKG_Channel\channelNumber\()_VolumeSetAgain
+        BR   Channel\cN\()_VolumeSetAgain
 
-PLY_AKG_Channel\channelNumber\()_VolumeNotOverflow:
+Channel\cN\()_VolumeNotOverflow:
         # Higher than 15?
         SWAB R5
         CMPB R5,$16
-        BLO  PLY_AKG_Channel\channelNumber\()_VolumeSetAgain
+        BLO  Channel\cN\()_VolumeSetAgain
         CLRB R5
         BISB $15,R5
-PLY_AKG_Channel\channelNumber\()_VolumeSetAgain:
+Channel\cN\()_VolumeSetAgain:
         SWAB R5
-        MOV  R5,@$PLY_AKG_Channel\channelNumber\()_InvertedVolumeIntegerAndDecimal
-PLY_AKG_Channel{channelNumber}_VolumeSlide_End:
-   .endif # PLY_AKG_UseEffect_VolumeSlide #----------------------------------}}}
+        MOV  R5,@$Channel\cN\()_InvertedVolumeIntegerAndDecimal
+Channel{cN}_VolumeSlide_End:
+   .endif # UseEffect_VolumeSlide #----------------------------------}}}
 
         SWAB R5
-        MOVB R5,@$PLY_AKG_Channel\channelNumber\()_GeneratedCurrentInvertedVolume
-        
+        MOVB R5,@$Channel\cN\()_GeneratedCurrentInvertedVolume
+
         # Use Arpeggio table? OUT: C = value.
         #----------------------------------------
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1169
@@ -725,31 +746,31 @@ PLY_AKG_Channel{channelNumber}_VolumeSlide_End:
         # Some dirty duplication in case there is no pitch up/down/glide.
         # The "real" vars are a bit below.
 # Put here, no need for better place (see the real label below, with the same name).
-PLY_AKG_Channel\channelNumber\()_SoundStream_RelativeModifierAddress:
+Channel\cN\()_SoundStream_RelativeModifierAddress:
        .ifdef PLY_AKS_UseEffect_ArpeggioTableOrPitchTable # CONFIG SPECIFIC
            .error
        .endif # PLY_AKS_UseEffect_ArpeggioTableOrPitchTable
    .else # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1301
         .error
-   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1466
 
         ADD  R3,R5 # Adds the Pitch Table value.
-        MOV  R5,@$PLY_AKG_Channel\channelNumber\()_GeneratedCurrentPitch
+        MOV  R5,@$Channel\cN\()_GeneratedCurrentPitch
 
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
        .error
    .endif # PLY_AKS_UseEffect_Arpeggio
 
 .endm #----------------------------------------------------------------------}}}
- 
-        PLY_AKG_ApplyTrailingEffects 1
-        PLY_AKG_ApplyTrailingEffects 2
-        PLY_AKG_ApplyTrailingEffects 3
+
+        ApplyTrailingEffects 1
+        ApplyTrailingEffects 2
+        ApplyTrailingEffects 3
 
 
 
         # The stack must NOT be diverted during the Play Streams!
-        MOV  @$PLY_AKG_SaveSP,SP
+        MOV  @$SaveSP,SP # playerAkg/sources/PlayerAkg.asm:1496
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * *
         * Plays the instrument on channel 1, 2, 3.          *
@@ -757,140 +778,312 @@ PLY_AKG_Channel\channelNumber\()_SoundStream_RelativeModifierAddress:
         * A macro is used instead of duplicating the code.  *
         * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-.macro PLY_AKG_PlayInstrument channelNumber # playerAkg/sources/PlayerAkg.asm:1504 -{{{
+.macro PlayInstrument cN regNumber # playerAkg/sources/PlayerAkg.asm:1504 -{{{
 # This must be placed at the any location to allow reaching the variables via IX/IY.
-PLY_AKG_Channel\channelNumber\()_PlayInstrument_RelativeModifierAddress:                   
+Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # What note to play?
-        # The pitch to add to the real note, according to the Pitch Table + Pitch/Glide effect.
-        MOV  (PC)+,R4; PLY_AKG_Channel\channelNumber\()_GeneratedCurrentPitch: .word 0
+        # The pitch to add to the real note,
+        # according to the Pitch Table + Pitch/Glide effect.
+        MOV  (PC)+,R4; Channel\cN\()_GeneratedCurrentPitch: .word 0
 
    .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
        .error
    .else # PLY_AKS_UseEffect_Arpeggio
         # Not automodified, stays this way.
-        MOV  (PC)+,R3; PLY_AKG_Channel\channelNumber\()_TrackNote: .word 0
+        MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
    .endif # PLY_AKS_UseEffect_Arpeggio
 
         # exx # playerAkg/sources/PlayerAkg.asm:1539
 
-       #MOV  (PC)+,R1; PLY_AKG_Channel\channelNumber\()_InstrumentStep: .word 0
         MOV  (PC)+,@(PC)+;
-        PLY_AKG_Channel\channelNumber\()_InstrumentStep:
+        Channel\cN\()_InstrumentStep:
        .word 0, R_Retrig
-        # Instrument data to read (past the header).
-        MOV  (PC)+,R5; PLY_AKG_Channel\channelNumber\()_PtInstrument: .word 0      
 
-   .if \channelNumber == 1 # Different code for the first channel.
-        # R7, shift twice TO THE LEFT.
-        # By default, the noise is cut (111), the sound is on (most usual case).
-        MOV  (PC)+,R2; PLY_AKG_Channel\channelNumber\()_GeneratedCurrentInvertedVolume: .word 0b11100000 << 8 + 15       
-   .else
-        MOV  (PC)+,R2; PLY_AKG_Channel\channelNumber\()_GeneratedCurrentInvertedVolume: .word 15       
+        # Instrument data to read (past the header).
+        MOV  (PC)+,R5; Channel\cN\()_PtInstrument: .word 0
+        MOV  (PC)+,R2; Channel\cN\()_GeneratedCurrentInvertedVolume: .word 15
+   .if \cN == 1
+        # For the first channel, sets the R7 value to no noise, all channel on
+        # by default ().
+        MOV  $0b11100000, @$PSGReg7
    .endif
 
-        # R_Reg7  = Reg7
+        # PSGReg7  = Reg7
         # R2   = inverted volume.
         # D'   = 0,
         # R3   = note (instrument + Track transposition).
         # R4   = track pitch.
         # R5   = PtInstrument
 
-        CALL PLY_AKG_ReadInstrumentCell # playerAkg/sources/PlayerAkg.asm:1567
+        CALL ReadInstrumentCell # playerAkg/sources/PlayerAkg.asm:1567
 
-        # The new and increased Instrument pointer is stored only if its speed has been reached.
-        # (>0) # playerAkg/sources/PlayerAkg.asm:1577
-        CMP  R0,(PC)+; PLY_AKG_Channel\channelNumber\()_InstrumentSpeed: .word 0
+        # The new and increased Instrument pointer is stored only if its speed
+        # has been reached. (>0)
+        MOV  @$PSGReg7,R0
+        # playerAkg/sources/PlayerAkg.asm:1577
+        CMP  R0,(PC)+; Channel\cN\()_InstrumentSpeed: .word 0
+        # Checks C, not only NZ because since the speed can be changed via
+        # an effect, the step can get beyond the limit, this must be taken
+        # in account.
+        BLO  Channel\cN\()_SetInstrumentStep
+        # The speed is reached. We can go to the next line on the next frame.
+        MOV  R5, @$Channel\cN\()_PtInstrument
+        CLR  R0
+Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
+        MOV  R0, @$Channel\cN\()_InstrumentStep
 
-.endm # PLY_AKG_PlayInstrument ----------------------------------------------}}}
-        
+        # Saves the software period and volume for the PSG to send later.
+        MOVB R4, @$PSGReg\regNumber # Reaches register/label 8/9/10.
+
+   .if \cN != 3
+        RORB  @$PSGReg7
+   .endif
+
+   .if \cN == 1
+        MOV  R3, @$PSGReg01_Instr
+   .elseif \cN == 2
+        MOV  R3, @$PSGReg23_Instr
+   .elseif \cN == 3
+        MOV  R3, @$PSGReg45_Instr
+   .endif
+
+.endm # PlayInstrument ----------------------------------------------}}}
+
         # Generates the code for all channels using the macro above.
-        PLY_AKG_PlayInstrument 1
-        PLY_AKG_PlayInstrument 2
-        PLY_AKG_PlayInstrument 3
+        PlayInstrument 1, 8
+        PlayInstrument 2, 9
+        PlayInstrument 3, 10
 
 # Plays the sound effects, if desired.
 #-------------------------------------------
-   .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:1638
+   .ifdef MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:1638
+       .error
         # IN : A = R7
         # OUT: A = R7, possibly modified.
-        CALL PLY_AKG_PlaySoundEffectsStream
-   .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
- 
-/*  -----------------------------------------------------------------------  
+        CALL PlaySoundEffectsStream
+   .endif # MANAGE_SOUND_EFFECTS
+
+/*  -----------------------------------------------------------------------
                                PSG access.
     -----------------------------------------------------------------------  */
+# Sends the registers to the PSG. Only general registers are sent,
+# the specific ones have already been sent.
+SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
+        MOV  $0177722,R4
+        MOV  $PSGReg01_Instr,R5
+
+        CLR  R3
+        MOV  R3,(R4)    # Register 0: Channel A Tone Period
+        MOVB (R5)+,(R4) # Value: 8-bit fine tune A
+
+        INC  R3
+        MOV  R3,(R4)    # Register 1: Channel A Tone Period
+        MOVB (R5)+,(R4) # Value: 4-bit coarse tune A
+
+        INC  R3
+        MOV  R3,(R4)    # Register 2: Channel B Tone Period
+        MOVB (R5)+,(R4) # Value : 8-bit fine tune B
+
+        INC  R3
+        MOV  R3,(R4)    # Register 3: Channel B Tone Period
+        MOVB (R5)+,(R4) # Value: 4-bit coarse tune B
+
+        INC  R3
+        MOV  R3,(R4)    # Register 4: Channel C Tone Period
+        MOVB (R5)+,(R4) # Value : 8-bit fine tune C
+
+        INC  R3
+        MOV  R3,(R4)    # Register 5: Channel C Tone Period
+        MOVB (R5)+,(R4) # Value: 4-bit coarse tune C
+
+   .ifdef Use_NoiseRegister # CONFIG SPECIFIC
+        INC  R3
+        MOV  R3,(R4)    # Register 6: Noise Period
+        MOVB (R5)+,(R4) # Value: 5-bit period control
+   .else # No noise. But R8 must still be set.
+        INC  R3
+        INC  R5
+   .endif
+
+        INC  R3
+        MOV  R3,(R4)    # Register 7: Enable, inverted
+        MOVB (PC)+,(R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
+        PSGReg7: .word 0
+
+        INC  R3
+        MOV  R3,(R4)  # Register 8: Channel A Amplitude
+        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+
+        INC  R3
+        MOV  R3,(R4)  # Register 9: Channel B Amplitude
+        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+
+        INC  R3
+        MOV  R3,(R4)  # Register 10: Channel C Amplitude
+        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+
+   .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC
+        INC  R3
+        MOV  R3,(R4)  # Register 11: Envelope Period
+        MOVB (R5)+,(R4) # Value: 8-bit Fine Tune E
+
+        INC  R3
+        MOV  R3,(R4)  # Register 12: Envelope Period
+        MOVB (R5)+,(R4) # Value: 8-bit Coarse Tune E
+
+        MOV  (R5),R2
+     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
+        MOV  (PC)+,R0; PSGReg13_OldValue: .word 0xFF
+        # 0 = no retrig.
+        # Else, should be >0xf to be sure the old value becomes a sentinel
+        # (i.e. unreachable) value.
+        BIS  (PC)+,R0; Retrig: .word 0
+        # Is the new value still the same?
+        # If yes, the new value must not be set again.
+        CMP  R2,R0
+        BEQ  PSGReg13_End
+     .else # PLY_CFG_UseRetrig
+        CMP  R2,(PC)+; PSGReg13_OldValue: .word 0xFF
+        BEQ  PSGReg13_End
+     .endif # PLY_CFG_UseRetrig # CONFIG SPECIFIC
+        MOV  R2,@$PSGReg13_OldValue
+
+        INC  R3
+        MOV  R3,(R4) # Register 13: Envelope Shape/Cycle
+        MOVB R2,(R4) # value: | Cont. |  Att.  |  Alt.  |  Hold |
+
+     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
+        CLR  @$Retrig
+     .endif # PLY_CFG_UseRetrig # CONFIG SPECIFIC
+PSGReg13_End:
+   .endif # PLY_CFG_UseHardwareSounds
 
         # playerAkg/sources/PlayerAkg.asm:2209
-        MOV  (PC)+,SP; PLY_AKG_SaveSP: .word 0
+        MOV  (PC)+,SP; SaveSP: .word 0
 
-        RETURN # playerAkg/sources/PlayerAkg.asm:2216
+        RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
+
+        PSGReg01_Instr: .word 0
+        PSGReg23_Instr: .word 0
+        PSGReg45_Instr: .word 0
+        PSGReg6_8_Instr:
+                PSGReg6: .byte 0
+                PSGReg8: .byte 0
+        PSGReg9_10_Instr:
+                PSGReg9:  .byte 0
+                PSGReg10: .byte 0
+        PSGHardwarePeriod_Instr: .word 0
+        PSGReg13_Instr: .word 0
+
+
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         * Channel1/2/3 sub-codes. Uses a macro to mutualize the code. *
         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-.macro PLY_AKG_ChannelSubcodes channelNumber
-PLY_AKG_Channel\channelNumber\()_MaybeEffects:
+.macro ChannelSubcodes cN # playerAkg/sources/PlayerAkg.asm:2234 #-----------{{{
+Channel\cN\()_MaybeEffects:
+        # There is one wait in all cases.
+        # xor a                  ;A is supposed to be 0.
+        MOV  R0,@$Channel\cN\()_WaitCounter
+   .ifndef PLY_CFG_UseEffects # CONFIG SPECIFIC
+        JMP  Channel\cN\()_BeforeEnd_StoreCellPointer
+   .else
+        BIT  $0x40,R2 # Effects?
+       .jmp  ZE, Channel\cN\()_BeforeEnd_StoreCellPointer
+        # Manage effects.
 
 # Reads the effects.
 # IN:    HL = Points on the effect blocks
 # OUT:   HL = Points after on the effect blocks
-PLY_AKG_Channel\channelNumber\()_ReadEffects: # playerAkg/sources/PlayerAkg.asm:2250
-.endm # PLY_AKG_ChannelSubcodes
+Channel\cN\()_ReadEffects: # playerAkg/sources/PlayerAkg.asm:2250
+       .error
+        MOV  $Channel\cN\()_SoundStream_RelativeModifierAddress, R3
+        MOV  $Channel\cN\()_PlayInstrument_RelativeModifierAddress, R3
+        MOV  $Channel\cN\()_BeforeEnd_StoreCellPointer, @$Channel_ReadEffects_EndJump
+        # Only adds a jump if this is not the last channel,
+        # as the code only need to jump below.
+       .if \cN != 3
+        BR   Channel_ReadEffects
+       .endif
+   .endif # PLY_CFG_UseEffects
+
+Channel\cN\()_ReadEffectsEnd:
+
+.endm # ChannelSubcodes #----------------------------------------------------}}}
 
         # Generates the code thanks to the macro declare above.
-        PLY_AKG_ChannelSubcodes 1
-        PLY_AKG_ChannelSubcodes 2
-        PLY_AKG_ChannelSubcodes 3
+        ChannelSubcodes 1
+        ChannelSubcodes 2
+        ChannelSubcodes 3
+
+        # ** NO CODE between the code above and below! **
+   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2269
+# IN:   R5 = Points on the effect blocks
+#       R4 = Where to go to when over.
+#       IX = Address from which the data of the instrument are modified.
+#       IY = Address from which data of the channels (pitch, volume, etc) are modified.
+# OUT:  R5 = Points after on the effect blocks
+Channel_ReadEffects:
+       .=Channel3_ReadEffectsEnd # Makes sure this code is directly below the one above.
+       #MOV  R4,@$Channel_ReadEffects_EndJump
+        MOVB (R5)+,R0
+        ASLB R0
+        BCS  Channel_ReadEffects_RelativeAddress
+
+
+
 
         # playerAkg/sources/PlayerAkg.asm:2296
-        MOV  (PC)+,R3; PLY_AKG_Channel_ReadEffects_EffectBlocks1: .word 0
+        MOV  (PC)+,R3; Channel_ReadEffects_EffectBlocks1: .word 0
 
         # playerAkg/sources/PlayerAkg.asm:2351
-        MOV  (PC)+,R3; PLY_AKG_Channel_ReadEffects_EffectBlocks2: .word 0
+        MOV  (PC)+,R3; Channel_ReadEffects_EffectBlocks2: .word 0
+       .error
+   .endif # PLY_CFG_UseEffects # playerAkg/sources/PlayerAkg.asm:2359
+
 
 # ---------------------------------
 # Codes that read InstrumentCells.
 # IN:    R5  = pointer on the Instrument data cell to read.
 #        IX  = can be modified.
-#            = Instrument step (>=0). Useful for retrig.
 R_Retrig: .word 0
+#            = Instrument step (>=0). Useful for retrig.
 #        SP  = normal use of the stack, do not pervert it!
-#            = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
+# PSGReg7     = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
 #              By default, the noise is OFF, the sound is ON, so no need to do
 #              anything if these values match.
-R_Reg7: .word 0
 #        R2  = inverted volume.
 #        R0  = SET BELOW: first byte of the data, shifted of 3 bits to the right.
 #        R1  = SET BELOW: first byte of the data, unmodified.
 #        R4  = track pitch.
-#R_TrackPitch: .word 0
 #        R3 = 0 / note (instrument + Track transposition).
-#        BC' = temp, use at will.
 R_Tmp: .word 0
+#        BC' = temp, use at will.
 
 # OUT:   R5  = new pointer on the Instrument (may be on the empty sound).
 #              If not relevant, any value can be returned, it doesn't matter.
 #        R_Retrig = Not 0 if retrig for this channel.
-#        R_Reg7   = register 7, updated, as if it was the channel 1 (so, bit 2 and 5 filled only).
+#        PSGReg7   = register 7, updated, as if it was the channel 1
+#                   (so, bit 2 and 5 filled only).
 #        R2  = volume to encode (0-16).
 #        R4  = software period. If not relevant, do not set it.
 #        R3  = output period.
 
-.equiv PLY_AKG_BitForSound, 0b00000100
-.equiv PLY_AKG_BitForNoise, 0b00100000
+.equiv BitForSound, 0b00000100
+.equiv BitForNoise, 0b00100000
 
-PLY_AKG_ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
-        MOVB (R5)+,R0
-        MOV  R0,R1 # Stores the first byte, handy in many cases.
+ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
+        MOVB (R5)+,R0 # Gets the first byte of the cell.
+        MOV  R0,R1    # Stores the first byte, handy in many cases.
 
         # What type if the cell?
         # First bit of the type.
         RORB R0
-       .jmp CS,PLY_AKG_S_Or_H_Or_SaH_Or_EndWithLoop
+       .jmp CS,S_Or_H_Or_SaH_Or_EndWithLoop
         # No Soft No Hard, or Soft To Hard, or Hard To Soft, or End without loop.
         RORB R0
-        BCS  PLY_AKG_StH_Or_EndWithoutLoop
+        BCS  StH_Or_EndWithoutLoop
         # No Soft No Hard, or Hard to Soft.
         RORB R0
    .ifdef PLY_CFG_HardToSoft # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2408
@@ -900,89 +1093,116 @@ PLY_AKG_ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
        /* * * * * * * * * * * *
         * "No soft, no hard". *
         * * * * * * * * * * * */
-PLY_AKG_NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
+NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
         BIC  $0xFFF0,R0 # Necessary, we don't know what crap is in the 4th bit of A.
 
        /* * * * * * * * *
         * "Soft only".  *
         * * * * * * * * */
    .ifdef PLY_CFG_SoftOnly # CONFIG SPECIFIC
-PLY_AKG_Soft: # playerAkg/sources/PlayerAkg.asm:2453
+Soft: # playerAkg/sources/PlayerAkg.asm:2453
         # Calculates the volume.
         BIC  $0xFFF0,R0 # Necessary, we don't know what crap is in the 4th bit of A.
         SUB  R2,R0
         BCC  10$
         CLR  R0
 10$:    MOV  R0,R2
-.endif # PLY_CFG_SoftOnly
+   .endif # PLY_CFG_SoftOnly
 
-   .ifdef PLY_AKG_UseSoftOnlyOrHardOnly
+   .ifdef UseSoftOnlyOrHardOnly
         # This code is also used by "Hard only".
-PLY_AKG_SoftOnly_HardOnly_TestSimple_Common: # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2464
+SoftOnly_HardOnly_TestSimple_Common: # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2464
         # Simple sound? Gets the bit, let the subroutine do the job.
         ROLB R1
-        BCC  PLY_AKG_S_NotSimple
+        BCC  S_NotSimple
         # Simple.
         CLR  @$R_Tmp # This will force the noise to 0.
-        BR   PLY_AKG_S_AfterSimpleTest
-PLY_AKG_S_NotSimple: # playerAkg/sources/PlayerAkg.asm:2471
+        BR   S_AfterSimpleTest
+S_NotSimple: # playerAkg/sources/PlayerAkg.asm:2471
         # Not simple. Reads and keeps the next byte, containing the noise.
         # WARNING, the following code must NOT modify the Carry!
         MOVB (R5)+,R1
         MOV  R2,@$R_Tmp
-PLY_AKG_S_AfterSimpleTest:
+S_AfterSimpleTest:
 
-        call PLY_AKG_S_Or_H_CheckIfSimpleFirst_CalculatePeriod
+        call S_Or_H_CheckIfSimpleFirst_CalculatePeriod
 
-       .ifdef PLY_AKG_UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC
-            .error
-       .endif # PLY_AKG_UseSoftOnlyOrHardOnly_Noise
-   .endif # PLY_AKG_UseSoftOnlyOrHardOnly
+       .ifdef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC
+        MOV  R2,R0 # Noise?
+        BIC  $0xFFE0,R0
+        BZE  1237$ # if noise not present, sound present, we can stop here,
+                   # R7 is fine.
+        # Noise is present
+        MOVB R0, @$PSGReg6
+        BIC  $BitForNoise, @$PSGReg7
+       .endif # UseSoftOnlyOrHardOnly_Noise
+1237$:  RETURN
+   .endif # UseSoftOnlyOrHardOnly
 
        /* * * * * * * * * *
         * "Hard to soft". *
         * * * * * * * * * */
    .ifdef PLY_CFG_HardToSoft # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2499
+       .error
+
+        # We have the ratio jump calculated and the primary period too.
+        # It must be divided to get the software frequency.
    .endif # PLY_CFG_HardToSoft
 
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         * End without loop. Put here to satisfy the BR range below. *
         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-PLY_AKG_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2575
+EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2575
         # Loops to the "empty" instrument, and makes another iteration.
-        MOV  (PC)+,R5; PLY_AKG_EmptyInstrumentDataPt: .word 0
+        MOV  (PC)+,R5; EmptyInstrumentDataPt: .word 0
 
         # No need to read the data, consider a void value.
         INC  R5
         CLR  R0
         CLR  R1
 
-        BR   PLY_AKG_NoSoftNoHard
+        BR   NoSoftNoHard
 
-PLY_AKG_StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
+StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         RORB R0
    .ifndef PLY_CFG_SoftToHard # CONFIG SPECIFIC
-        BR   PLY_AKG_EndWithoutLoop
+        BR   EndWithoutLoop
    .else
        .error
    .endif
 
-PLY_AKG_S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
+S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
         # Second bit of the type.
         RORB R0
-        BCS  PLY_AKG_H_Or_EndWithLoop
+        BCS  H_Or_EndWithLoop
         # Third bit of the type.
         RORB R0
    .ifdef PLY_CFG_SoftOnly # CONFIG SPECIFIC
-       .jmp CC, PLY_AKG_Soft
+       .jmp CC, Soft
    .endif # PLY_CFG_SoftOnly
 
    .ifdef PLY_CFG_SoftAndHard # CONFIG SPECIFIC
        .error
    .endif # PLY_CFG_SoftAndHard
 
-PLY_AKG_H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
+H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
+   .ifdef PLY_CFG_HardOnly # CONFIG SPECIFIC
+       .error
+   .endif # PLY_CFG_HardOnly
+
+        # ** WARNING! ** Do not put instructions here between
+        # HardOnly and EndWithLoop, else conditional assembling will fail.
+
+       /* * * * * * * * *
+        * End with loop *
+        * * * * * * * * */
+   .ifdef PLY_CFG_UseInstrumentLoopTo # CONFIG SPECIFIC
+        # Loops to the encoded pointer, and makes another iteration.
+        MOV  (R5),R5
+        JMP  ReadInstrumentCell
+   .endif # PLY_CFG_UseInstrumentLoopTo
+
 
 # Common code for calculating the period, regardless of Soft or Hard.
 # The same register constraints as the methods above apply.
@@ -998,17 +1218,20 @@ PLY_AKG_H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
 #
 # OUT:   R1 = shift three times to the left.
 #        R2 = unmodified.
-#        R4 = calculated period.
+#        R3 = calculated period.
 #        R5 = advanced.
-PLY_AKG_S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
+S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         # Simple sound? Checks the carry.
-   .ifdef PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
-        BCC  PLY_AKG_S_Or_H_NextByte
-   .endif # PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
-        # No more bytes to read, the sound is "simple". The software period must still be calculated.
-        # Calculates the note period from the note of the track. This is the same code as below.
+   .ifdef UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
+        BCC  S_Or_H_NextByte
+   .endif # UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
+        # No more bytes to read, the sound is "simple".
+        # The software period must still be calculated.
+        # Calculates the note period from the note of the track.
+        # This is the same code as below.
         ASL  R3
-        ADD  @PLY_AKG_PeriodTable(R3),R4
+        MOV  PeriodTable(R3),R3
+        ADD  R4,R3
         # Important: the bits must be shifted so that B is in the same state
         # as if it were not a "simple" sound.
         ROLB R1
@@ -1017,44 +1240,78 @@ PLY_AKG_S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         # No need to modify R7.
 RETURN
 
-   .ifdef PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
-PLY_AKG_S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
-        # Not simple. Reads the next bits to know if there is pitch/arp/forced software period.        
+   .ifdef UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
+S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
+        # Not simple. Reads the next bits to know if there is pitch/arp/forced software period.
 
         # Forced period?
         ROLB R1
-       .ifdef PLY_AKG_UseInstrumentForcedPeriods # CONFIG SPECIFIC
-           .error
-        BCS   PLY_AKG_S_Or_H_ForcedPeriod
-       .endif # PLY_AKG_UseInstrumentForcedPeriods
+     .ifdef UseInstrumentForcedPeriods # CONFIG SPECIFIC
+        BCS   S_Or_H_ForcedPeriod
+     .endif # UseInstrumentForcedPeriods
 
         # No forced period. Arpeggio?
         ROLB R1
-       .ifdef PLY_AKG_UseInstrumentArpeggios # CONFIG SPECIFIC
-           .error
-        BCC  PLY_AKG_S_Or_H_AfterArpeggio
-        MOVB (R5)+,R0
-        # exx
-        #         add a,e                         ;We don't care about overflow, no time for that.
-        #         ld e,a
-        # exx
+     .ifdef UseInstrumentArpeggios # CONFIG SPECIFIC
+        BCC  S_Or_H_AfterArpeggio
+        CLR  R0
+        BISB (R5)+,R0
+        # playerAkg/sources/PlayerAkg.asm:2835
+        # TODO: check if it's ok to add word instead of byte (overflow wont
+        # happen)
+        ADD  R0,R4 # We don't care about overflow, no time for that.
 
-PLY_AKG_S_Or_H_AfterArpeggio:
-       .endif # PLY_AKG_UseInstrumentArpeggios
+S_Or_H_AfterArpeggio:
+     .endif # UseInstrumentArpeggios
 
         # Pitch?
         ROLB R1
-       .ifdef PLY_AKG_UseInstrumentPitchs # CONFIG SPECIFIC
-           .error
-       .endif # PLY_AKG_UseInstrumentPitchs
+     .ifdef UseInstrumentPitchs # CONFIG SPECIFIC
+        BCC  S_Or_H_AfterPitch
+        # Reads the pitch. Slow, but shouldn't happen so often.
+        # TODO: check if it works as intended
+        CLR  R0
+        BISB (R5)+,R0
+        SWAB R0
+        BISB (R5)+,R0
+        SWAB R0
+        ADD  R0,R4 # Adds the cell pitch to the track pitch
+S_Or_H_AfterPitch:
+     .endif # UseInstrumentPitchs
         # Calculates the note period from the note of the track.
-RETURN
-   .endif # PLY_AKG_UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
- 
+        ASL  R3
+        MOV  PeriodTable(R3),R3
+        ADD  R4,R3
 
+RETURN
+   .endif # UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
+
+   .ifdef UseInstrumentForcedPeriods # CONFIG SPECIFIC
+       .error
+   .endif # UseInstrumentForcedPeriods
+
+        #------------------------------------------------------------------
+        # Common code for SoftToHard and HardToSoft, and even Soft And Hard.
+        # The same register constraints as the methods above apply.
+        # OUT:   HL' = frequency.
+        #        A = shifted inverted ratio (xxx000),
+        #            ready to be used in a JR to multiply/divide the frequency.
+        #        B = bit states, shifted four times to the left
+        #            (for StoH/HtoS, the msb will be "pitch shift?")
+        #            (hardware for SoftTohard, software for HardToSoft).
+   .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC
+       .error
+   .endif # PLY_CFG_UseHardwareSounds
+
+# -----------------------------------------------------------------------------------
+# Effects management.
+# -----------------------------------------------------------------------------------
+   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2981
+       .error
+   .endif # PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:3434
 
 # The period table for each note (from 0 to 127 included).
-PLY_AKG_PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
+PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
         # PSG running to 1773400 Hz.
     .word 6778, 6398, 6039, 5700, 5380, 5078, 4793, 4524, 4270, 4030, 3804, 3591 # Octave 0
     .word 3389, 3199, 3019, 2850, 2690, 2539, 2397, 2262, 2135, 2015, 1902, 1795 # Octave 1
@@ -1067,4 +1324,4 @@ PLY_AKG_PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
     .word   26,   25,   24,   22,   21,   20,   19,   18,   17,   16,   15,   14 # Octave 8
     .word   13,   12,   12,   11,   11,   10,    9,    9,    8,    8,    7,    7 # Octave 9
     .word    7,    6,    6,    6,    5,    5,    5,    4                         # Octave 10
-PLY_AKG_PeriodTable_End:
+PeriodTable_End:
