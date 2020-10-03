@@ -25,16 +25,7 @@
      .global PLY_AKG_Stop
   .endif
 
-    PLY_CFG_ConfigurationIsPresent = 1
-    PLY_CFG_UseEffects = 1
-    PLY_CFG_UseInstrumentLoopTo = 1
-    PLY_CFG_NoSoftNoHard = 1
-    PLY_CFG_NoSoftNoHard_Noise = 1        # Use_NoiseRegister = 1
-    PLY_CFG_SoftOnly = 1                  # UseSoftOnlyOrHardOnly
-    PLY_CFG_SoftOnly_Noise = 1            # UseSoftOnlyOrHardOnly_Noise
-    PLY_CFG_SoftOnly_SoftwareArpeggio = 1 # UseInstrumentArpeggios
-    PLY_CFG_SoftOnly_SoftwarePitch = 1    # UseInstrumentPitchs
-    PLY_CFG_UseEffect_SetVolume = 1
+       .include "akg_player_config.s"
 
 # Agglomerates some flags, because they are treated the same way by this player.
 #----------------------------------------------------------------------------{{{
@@ -263,26 +254,26 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         ADD  $5,R5   # Skips the replay frequency, digichannel, psg count, loop start index, end index.
         MOVB (R5)+,@$CurrentSpeed
         MOVB (R5)+,@$BaseNoteIndex
-        INC  R5 # align the pointer on word
+        INC  R5 # 7 bytes of metadata, align the pointer on word
         MOV  R5,@$ReadLinker_PtLinker
 
         # Initializes values. You can remove this part if you don't stop/restart your song.
   .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:492
         MOV  $InitTable0,R5
        .set words_count, (InitTable0_End - InitTable0) >> 1
-        MOV  $words_count,R1
+        MOV  $words_count + 1,R1
         CLR  R2
         CALL Init_ReadWordsAndFill
 
         MOV  $InitTable1,R5
        .set words_count, (InitTable1_End - InitTable1) >> 1
-        MOV  $words_count,R1
+        MOV  $words_count + 1,R1
         INC  R2
         CALL Init_ReadWordsAndFill
 
         MOV  $InitTableOrA,R5
        .set words_count, (InitTableOrA_End - InitTableOrA) >> 1
-        MOV  $words_count,R1
+        MOV  $words_count + 1,R1
         MOV  $OPCODE_CLC,R2 # CLC opcode
         CALL Init_ReadWordsAndFill
 
@@ -329,19 +320,19 @@ InitTable0: # playerAkg/sources/PlayerAkg.asm:576
        .word Channel3_InvertedVolumeIntegerAndDecimal
 
     .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
-        .word Channel1_Pitch
-        .word Channel2_Pitch
-        .word Channel3_Pitch
+       .word Channel1_Pitch
+       .word Channel2_Pitch
+       .word Channel3_Pitch
     .endif #PLY_AKS_UseEffect_PitchUpOrDown
 
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
-        .word Retrig
+       .word Retrig
     .endif #PLY_CFG_UseRetrig
 InitTable0_End:
 
 InitTable1: # playerAkg/sources/PlayerAkg.asm:598
-        .word PatternDecreasingHeight
-        .word TickDecreasingCounter
+       .word PatternDecreasingHeight
+       .word TickDecreasingCounter
 InitTable1_End:
 
 InitTableOrA: # playerAkg/sources/PlayerAkg.asm:605 ----------------{{{
@@ -438,6 +429,8 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
     .error
+        SWAB R5
+        MOVB R5,@$Channel1_Transposition
   .endif # PLY_CFG_UseTranspositions
 
         # Reads the transposition2 and 3.
@@ -450,6 +443,10 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
     .error
+        MOV  (SP)+,R5
+        MOVB R5,@$Channel1_Transposition
+        SWAB R5
+        MOVB R5,@$Channel2_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC
@@ -788,7 +785,7 @@ Channel\cN\()_SoundStream_RelativeModifierAddress:
         * A macro is used instead of duplicating the code.  *
         * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-.macro PlayInstrument cN regNumber # playerAkg/sources/PlayerAkg.asm:1504 -{{{
+.macro PlayInstrument cN # playerAkg/sources/PlayerAkg.asm:1504 -{{{
 # This must be placed at the any location to allow reaching the variables via IX/IY.
 Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
@@ -844,26 +841,26 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
         MOV  R0, @$Channel\cN\()_InstrumentStep
 
         # Saves the software period and volume for the PSG to send later.
-        MOVB R4, @$PSGReg\regNumber # Reaches register/label 8/9/10.
+  .if \cN == 1
+        MOV  R3, @$PSGReg01_Instr
+        MOVB R4, @$PSGReg8
+  .elseif \cN == 2
+        MOV  R3, @$PSGReg23_Instr
+        MOVB R4, @$PSGReg9
+  .elseif \cN == 3
+        MOV  R3, @$PSGReg45_Instr
+        MOVB R4, @$PSGReg10
+  .endif
 
   .if \cN != 3
         RORB  @$PSGReg7
   .endif
-
-  .if \cN == 1
-        MOV  R3, @$PSGReg01_Instr
-  .elseif \cN == 2
-        MOV  R3, @$PSGReg23_Instr
-  .elseif \cN == 3
-        MOV  R3, @$PSGReg45_Instr
-  .endif
-
 .endm # PlayInstrument ----------------------------------------------}}}
 
         # Generates the code for all channels using the macro above.
-        PlayInstrument 1, 8
-        PlayInstrument 2, 9
-        PlayInstrument 3, 10
+        PlayInstrument 1
+        PlayInstrument 2
+        PlayInstrument 3
 
 # Plays the sound effects, if desired.
 #-------------------------------------------
@@ -880,7 +877,7 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # Sends the registers to the PSG. Only general registers are sent,
 # the specific ones have already been sent.
 SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
-        MOV  $0177722,R4
+        MOV  $0177360,R4
         MOV  $PSGReg01_Instr,R5
 
         CLR  R3
@@ -907,12 +904,11 @@ SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
         MOV  R3,(R4)    # Register 5: Channel C Tone Period
         MOVB (R5)+,(R4) # Value: 4-bit coarse tune C
 
-  .ifdef Use_NoiseRegister # CONFIG SPECIFIC
         INC  R3
+  .ifdef Use_NoiseRegister # CONFIG SPECIFIC
         MOV  R3,(R4)    # Register 6: Noise Period
         MOVB (R5)+,(R4) # Value: 5-bit period control
   .else # No noise. But R8 must still be set.
-        INC  R3
         INC  R5
   .endif
 
@@ -1404,7 +1400,7 @@ EffectTable:
        .error
        .word Effect_PitchStop                   # 11
    .else
-        .word 0
+       .word 0
    .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
 
    .ifdef PLY_CFG_UseEffect_PitchGlide           # CONFIG SPECIFIC
@@ -1464,7 +1460,7 @@ EffectTable:
 Effect_ResetFullVolume: # :3087
   .endif # PLY_CFG_UseEffect_Reset
 
-  .ifdef UseEffect_SetVolume # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEffect_SetVolume # CONFIG SPECIFIC
 Effect_Volume: # playerAkg/sources/PlayerAkg.asm:3123
         MOV  @$SoundStream_RelativeModifierAddress,R0
        .set idx, Channel1_InvertedVolumeInteger - Channel1_SoundStream_RelativeModifierAddress
@@ -1476,22 +1472,22 @@ Effect_Volume: # playerAkg/sources/PlayerAkg.asm:3123
     .endif # UseEffect_VolumeSlide
 
         JMP  Channel_RE_EffectReturn
-  .endif # UseEffect_SetVolume
+  .endif # PLY_CFG_UseEffect_SetVolume
 
 .endif # PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:3434
 
 # The period table for each note (from 0 to 127 included).
 PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
-        # PSG running to 1773400 Hz.
-    .word 6778, 6398, 6039, 5700, 5380, 5078, 4793, 4524, 4270, 4030, 3804, 3591 # Octave 0
-    .word 3389, 3199, 3019, 2850, 2690, 2539, 2397, 2262, 2135, 2015, 1902, 1795 # Octave 1
-    .word 1695, 1599, 1510, 1425, 1345, 1270, 1198, 1131, 1068, 1008,  951,  898 # Octave 2
-    .word  847,  800,  755,  712,  673,  635,  599,  566,  534,  504,  476,  449 # Octave 3
-    .word  424,  400,  377,  356,  336,  317,  300,  283,  267,  252,  238,  224 # Octave 4
-    .word  212,  200,  189,  178,  168,  159,  150,  141,  133,  126,  119,  112 # Octave 5
-    .word  106,  100,   94,   89,   84,   79,   75,   71,   67,   63,   59,   56 # Octave 6
-    .word   53,   50,   47,   45,   42,   40,   37,   35,   33,   31,   30,   28 # Octave 7
-    .word   26,   25,   24,   22,   21,   20,   19,   18,   17,   16,   15,   14 # Octave 8
-    .word   13,   12,   12,   11,   11,   10,    9,    9,    8,    8,    7,    7 # Octave 9
+    # base_freq = 1789772.5 Hz
+    .word 6841, 6457, 6095, 5753, 5430, 5125, 4837, 4566, 4310, 4068, 3839, 3624 # Octave 0
+    .word 3420, 3229, 3047, 2876, 2715, 2562, 2419, 2283, 2155, 2034, 1920, 1812 # Octave 1
+    .word 1710, 1614, 1524, 1438, 1357, 1281, 1209, 1141, 1077, 1017,  960,  906 # Octave 2
+    .word  855,  807,  762,  719,  679,  641,  605,  571,  539,  508,  480,  453 # Octave 3
+    .word  428,  404,  381,  360,  339,  320,  302,  285,  269,  254,  240,  226 # Octave 4
+    .word  214,  202,  190,  180,  170,  160,  151,  143,  135,  127,  120,  113 # Octave 5
+    .word  107,  101,   95,   90,   85,   80,   76,   71,   67,   64,   60,   57 # Octave 6
+    .word   53,   50,   48,   45,   42,   40,   38,   36,   34,   32,   30,   28 # Octave 7
+    .word   27,   25,   24,   22,   21,   20,   19,   18,   17,   16,   15,   14 # Octave 8
+    .word   13,   13,   12,   11,   11,   10,    9,    9,    8,    8,    7,    7 # Octave 9
     .word    7,    6,    6,    6,    5,    5,    5,    4                         # Octave 10
 PeriodTable_End:

@@ -21,7 +21,10 @@
 #     and so on.
 # The monitor uses this information when it loads the program.
                 .=0360
-                .byte 0b11111000
+                .byte 0b11111111
+                .byte 0b11111111
+                .byte 0b11111111
+                .byte 0b11000000
                 #       76543210
                 .=01000
 
@@ -45,13 +48,9 @@ start:
         CALL PPUOut            # => Send request to PPU
 
 1$:     TST  @$PPDONE
-        BNE  1$
+        BMI  1$
 
        .exit
-
-       .include "ep1-intro.s"
-       .include "akg_player.s"
-       .even
 
 PPDONE: .word -1
 
@@ -89,7 +88,22 @@ PStruct:    # Parameters struct (PS)
         .even
 #----------------------------------------------------------------------------}}}
 
+        .=023666
 PPUModuleStart:
+        CLR  R0
+        MOV  $simple_test_Start,R5
+        CALL PLY_AKG_Init
+    loop$:
+        CALL PLY_AKG_Play
+        WAIT
+        BR  loop$
+
+       .include "akg_player.s"
+       .include "simple_test.s"
+IntroMusic:
+       .include "ep1-intro.s"
+       .even
+
         MOV  $PPU_PPDONE,@$PBPADR
         CLR  @$PBP12D
 

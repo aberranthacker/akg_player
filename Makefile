@@ -14,8 +14,9 @@ common = hwdefs.s macros.s
 TEST.SAV : test.o
 	$(LD) -T test.cmd -s
 	chmod -x TEST.SAV
+	../tools/rt11dsk a rt11sj.dsk TEST.SAV
 
-test.o : akg_player.s ep1-intro.s test.s $(common)
+test.o : akg_player.s akg_player_config.s ep1-intro.s test.s $(common)
 	$(AS) -al test.s -o test.o
 
 clean :
