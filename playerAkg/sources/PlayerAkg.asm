@@ -2369,7 +2369,7 @@ PLY_AKG_Channel_ReadEffects_EffectBlocks2: ld de,0
 ;       IYL = Instrument step (>=0). Useful for retrig.
 ;       SP = normal use of the stack, do not pervert it!
 ;       D = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
-;             By default, the noise is OFF, the sound is ON, so no need to do anything if these values match.
+;           By default, the noise is OFF, the sound is ON, so no need to do anything if these values match.
 ;       E = inverted volume.
 ;       A = SET BELOW: first byte of the data, shifted of 3 bits to the right.
 ;       B = SET BELOW: first byte of the data, unmodified.
@@ -2481,10 +2481,10 @@ PLY_AKG_S_AfterSimpleTest:
         ;Noise?
         ld a,c
         and %11111
-        ret z                                   ;if noise not present, sound present, we can stop here, R7 is fine.
+        ret z                     ;if noise not present, sound present, we can stop here, R7 is fine.
         ;Noise is present.
         ld (PLY_AKG_PSGReg6),a
-        res PLY_AKG_BitForNoise,d               ;Noise present.
+        res PLY_AKG_BitForNoise,d ;Noise present.
                                 ENDIF ;PLY_AKG_UseSoftOnlyOrHardOnly_Noise
         ret
                         ENDIF ;PLY_AKG_UseSoftOnlyOrHardOnly
