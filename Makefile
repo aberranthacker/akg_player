@@ -11,11 +11,13 @@ LD=~/opt/binutils-pdp11/pdp11-dec-aout/bin/ld
 
 common = hwdefs.s macros.s
 
+rt11_50sj.dsk : TEST.SAV
+	../tools/rt11dsk d rt11_50sj.dsk TEST.SAV
+	../tools/rt11dsk a rt11_50sj.dsk TEST.SAV
+
 TEST.SAV : test.o
 	$(LD) -T test.cmd -s
 	chmod -x TEST.SAV
-	../tools/rt11dsk d rt11sj.dsk TEST.SAV
-	../tools/rt11dsk a rt11sj.dsk TEST.SAV
 
 test.o : akg_player.s \
          akg_player_config.s \

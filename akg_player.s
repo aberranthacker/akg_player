@@ -448,10 +448,12 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .endif # UseSpecialTracks
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
-        MOV  (SP)+,R5
-        MOVB R5,@$Channel1_Transposition
-        SWAB R5
-        MOVB R5,@$Channel2_Transposition
+      # MOV  (SP)+,R5
+      # MOVB R5,@$Channel2_Transposition
+      # SWAB R5
+      # MOVB R5,@$Channel3_Transposition
+        MOVB (SP)+,@$Channel2_Transposition
+        MOVB (SP)+,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC
@@ -609,56 +611,56 @@ Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
         # Arpeggio and Pitch Table are reset.
 
         # The track pitch and glide, instrument step are reset.
-  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC -----------{{{
         CLR  @$Channel\cN\()_Pitch
-  .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+  .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide ---------------------------}}}
 
-  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC -----------------------{{{
         CLR  @$Channel\cN\()_ArpeggioTableCurrentStep
-  .endif # PLY_AKS_UseEffect_Arpeggio
+  .endif # PLY_AKS_UseEffect_Arpeggio ---------------------------------------}}}
 
-  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC ---------------------{{{
         CLR  @$Channel\cN\()_PitchTableCurrentStep
-  .endif # PLY_CFG_UseEffect_PitchTable
+  .endif # PLY_CFG_UseEffect_PitchTable -------------------------------------}}}
 
         CLR  @$Channel\cN\()_InstrumentStep
 
     # If the "force instrument speed" effect is used,
     # the instrument speed must be reset to its original value.
-  .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC -----------{{{
     .error
         MOV  (PC)+,@(PC)+;
         Channel\cN\()_InstrumentOriginalSpeed:
        .word 0, Channel\cN\()_InstrumentSpeed
-  .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed
+  .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed ---------------------------}}}
 
-  .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC ------------------{{{
     .error
         MOV  $OPCODE_CLC, @$Channel\cN\()_IsPitch
-  .endif # PLY_AKS_UseEffect_PitchUpOrDown
+  .endif # PLY_AKS_UseEffect_PitchUpOrDown ----------------------------------}}}
 
         # Resets the speed of the Arpeggio and the Pitch.
-  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC -----------------------{{{
     .error
         MOV  @$Channel\cN\()_ArpeggioBaseSpeed, @$Channel\cN\()_ArpeggioTableSpeed
-  .endif # PLY_AKS_UseEffect_Arpeggio
+  .endif # PLY_AKS_UseEffect_Arpeggio ---------------------------------------}}}
 
-  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC ---------------------{{{
     .error
         MOV  @$Channel\cN\()_PitchBaseSpeed, @$Channel\cN\()_PitchTableSpeed
-  .endif # PLY_CFG_UseEffect_PitchTable
+  .endif # PLY_CFG_UseEffect_PitchTable -------------------------------------}}}
 
-  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC -----------------------{{{
     .error
         # Points to the first value of the Arpeggio.
         MOV  @$Channel\cN\()_ArpeggioTableBase, @$Channel\cN\()_ArpeggioTable
-  .endif # PLY_AKS_UseEffect_Arpeggio
+  .endif # PLY_AKS_UseEffect_Arpeggio ---------------------------------------}}}
 
-  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC ---------------------{{{
     .error
         # Points to the first value of the Pitch.
         MOV  @$Channel\cN\()_PitchTableBase, @$Channel\cN\()_PitchTable
-  .endif # PLY_CFG_UseEffect_PitchTable
+  .endif # PLY_CFG_UseEffect_PitchTable -------------------------------------}}}
 
   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC
         # Effects?
@@ -831,8 +833,8 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # The new and increased Instrument pointer is stored only if its speed
         # has been reached. (>0)
-       .error
-        MOV  @$PSGReg7,R0
+        MOV  @$R_Retrig,R0
+        INC  R0
         # playerAkg/sources/PlayerAkg.asm:1577
         CMP  R0,(PC)+; Channel\cN\()_InstrumentSpeed: .word 0
         # Checks C, not only NZ because since the speed can be changed via
@@ -1096,7 +1098,7 @@ R_Retrig: .word 0
 #        R1  = SET BELOW: first byte of the data, unmodified.
 #        R4  = track pitch.
 #        R3 = 0 / note (instrument + Track transposition).
-R_Tmp: .word 0
+#        R_Tmp: temp, use at will. SRC
 #        BC' = temp, use at will.
 
 # OUT:   R5  = new pointer on the Instrument (may be on the empty sound).
@@ -1138,7 +1140,7 @@ NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
         CLR  R0
 10$:    MOV  R0,R2      # Sets the volume.
 
-  .ifdef PLY_CFG_NoSoftNoHard_Noise # CONFIG SPECIFIC
+  .ifdef PLY_CFG_NoSoftNoHard_Noise # CONFIG SPECIFIC -----------------------{{{
         ROLB R1 # Noise?
         BCC  NSNH_NoNoise
         # Noise
@@ -1148,7 +1150,7 @@ NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
 
         RETURN
      NSNH_NoNoise:
-  .endif # PLY_CFG_NoSoftNoHard_Noise
+  .endif # PLY_CFG_NoSoftNoHard_Noise ---------------------------------------}}}
 
         BIS  $BitForSound,@$PSGReg7 # ;No noise (default), no sound.
 
@@ -1168,15 +1170,20 @@ Soft: # playerAkg/sources/PlayerAkg.asm:2453
 10$:    MOV  R0,R2      # Sets the volume.
   .endif # PLY_CFG_SoftOnly
 
-  .ifdef UseSoftOnlyOrHardOnly # -------------------------------------------{{{
+  .ifdef UseSoftOnlyOrHardOnly # --------------------------------------------{{{
         # This code is also used by "Hard only".
 SoftOnly_HardOnly_TestSimple_Common: # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2464
         # Simple sound? Gets the bit, let the subroutine do the job.
         ROLB R1
         BCC  S_NotSimple
         # Simple.
-        CLR  @$R_Tmp # This will force the noise to 0.
+        # WARNING, the following code must NOT modify the Carry!
+        MOV  $0,@$R_Tmp # This will force the noise to 0.
         BR   S_AfterSimpleTest
+
+    .ifndef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC -------------------{{{
+        R_Tmp: .word 0
+    .endif # ----------------------------------------------------------------}}}
 S_NotSimple: # playerAkg/sources/PlayerAkg.asm:2471
         # Not simple. Reads and keeps the next byte, containing the noise.
         # WARNING, the following code must NOT modify the Carry!
@@ -1186,17 +1193,18 @@ S_AfterSimpleTest:
 
         CALL S_Or_H_CheckIfSimpleFirst_CalculatePeriod
 
-    .ifdef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC
-        MOV  @$R_Tmp,R0 # Noise?
+    .ifdef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC --------------------{{{
+        MOV  (PC)+,R0; R_Tmp: .word 0 # Noise?
         BIC  $0xFFE0,R0
         BZE  1237$ # if noise not present, sound present, we can stop here,
                    # R7 is fine.
         # Noise is present
         MOVB R0, @$PSGReg6
         BIC  $BitForNoise, @$PSGReg7
-    .endif # UseSoftOnlyOrHardOnly_Noise
+    .endif # UseSoftOnlyOrHardOnly_Noise ------------------------------------}}}
+
 1237$:  RETURN
-  .endif # UseSoftOnlyOrHardOnly -------------------------------------------}}}
+  .endif # UseSoftOnlyOrHardOnly --------------------------------------------}}}
 
        /* * * * * * * * * *
         * "Hard to soft". *
@@ -1306,7 +1314,7 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
         # Forced period?
         ROLB R1
     .ifdef UseInstrumentForcedPeriods # CONFIG SPECIFIC
-        BCS   S_Or_H_ForcedPeriod
+        BCS  S_Or_H_ForcedPeriod
     .endif # UseInstrumentForcedPeriods
 
         # No forced period. Arpeggio?
@@ -1316,8 +1324,7 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
         CLR  R0
         BISB (R5)+,R0
         # playerAkg/sources/PlayerAkg.asm:2835
-        # TODO: check if it's ok to add word instead of byte (overflow wont
-        # happen)
+        # TODO: check if it's ok to add word instead of byte (overflow wont happen)
         ADD  R0,R4 # We don't care about overflow, no time for that.
 
 S_Or_H_AfterArpeggio:
