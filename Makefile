@@ -12,7 +12,7 @@ LD=~/opt/binutils-pdp11/pdp11-dec-aout/bin/ld
 common = hwdefs.s macros.s
 
 rt11_50sj.dsk : TEST.SAV
-	../tools/rt11dsk d rt11_50sj.dsk TEST.SAV
+	../tools/rt11dsk d rt11_50sj.dsk TEST.SAV >/dev/null
 	../tools/rt11dsk a rt11_50sj.dsk TEST.SAV
 
 TEST.SAV : test.o

@@ -305,7 +305,7 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
 
 RETURN # Init -------------------------------------------------------}}}
 
-  .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:559
+  .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:559 ------------------{{{
         # Fills all the read addresses with a byte.
         # IN:    R5 = table where the addresses are.
         #        R1 = how many items in the table + 1.
@@ -365,9 +365,9 @@ InitTableOrA: # playerAkg/sources/PlayerAkg.asm:605 ----------------{{{
        .word Channel3_IsPitch
     .endif # PLY_AKS_UseEffect_PitchUpOrDown
 InitTableOrA_End: #-------------------------------------------------}}}
-  .endif # FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:629
+  .endif # FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:629 -------------}}}
 
-  .if STOP_SOUNDS # playerAkg/sources/PlayerAkg.asm:654
+  .if STOP_SOUNDS # playerAkg/sources/PlayerAkg.asm:654 ---------------------{{{
         # Stops the music.
         # This code can be removed if you don't intend to stop it!
 PLY_AKG_Stop:
@@ -377,7 +377,7 @@ PLY_AKG_Stop:
         CLR  @$PSGReg9_10_Instr
         MOV  $0b00111111, @$PSGReg7
         JMP  SendPSGRegisters
-  .endif # STOP_SOUNDS
+  .endif # STOP_SOUNDS ------------------------------------------------------}}}
 
 
 ################################################################################
@@ -391,24 +391,24 @@ PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676
     .error
   .endif # PLY_CFG_UseEventTracks
 
-.list
         # Decreases the tick counter. If 0 is reached, a new line must be read.
         MOV  (PC)+,R0; TickDecreasingCounter: .word 1
         DEC  R0
-        BZE  10$ # new line
+        BZE  new_line$
         # Jumps if there is no new line: continues playing the sound stream.
         JMP  SetSpeedBeforePlayStreams
-.nolist
 
-10$:    # New line! Is the Pattern ended?
+new_line$:
+        # New line! Is the Pattern ended?
         # Not as long as there are lines to read.
         MOV  (PC)+,R0; PatternDecreasingHeight: .word 1
         DEC  R0
-        BZE  20$ # pattern ended
+        BZE  new_pattern$ # pattern ended
         # Jumps if the pattern isn't ended.
         JMP  SetCurrentLineBeforeReadLine
 
-20$:    # New pattern!
+new_pattern$:
+        # New pattern!
         # Reads the Linker. This is called at the start of the song,
         # or at the end of every position.
 ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
@@ -440,23 +440,19 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .endif # PLY_CFG_UseTranspositions
 
         # Reads the transposition2 and 3.
-  .ifdef UseSpecialTracks # CONFIG SPECIFIC
+  .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
     .error
     .ifndef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
       .error
     .endif # PLY_CFG_UseTranspositions
-  .endif # UseSpecialTracks
+  .endif # UseSpecialTracks -------------------------------------------------}}}
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
-      # MOV  (SP)+,R5
-      # MOVB R5,@$Channel2_Transposition
-      # SWAB R5
-      # MOVB R5,@$Channel3_Transposition
         MOVB (SP)+,@$Channel2_Transposition
         MOVB (SP)+,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
-  .ifdef UseSpecialTracks # CONFIG SPECIFIC
+  .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
     .error
     # Reads the special Tracks addresses.
     .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
@@ -466,16 +462,16 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
     .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
       .error
     .endif # PLY_CFG_UseEventTracks
-  .endif # UseSpecialTracks
+  .endif # UseSpecialTracks -------------------------------------------------}}}
 
         # Forces the reading of every Track and Special Track.
-  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC ---------------------------{{{
         CLR  @$SpeedTrack_WaitCounter
-  .endif # PLY_CFG_UseSpeedTracks
+  .endif # PLY_CFG_UseSpeedTracks -------------------------------------------}}}
 
-  .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC ---------------------------{{{
         CLR  @$EventTrack_WaitCounter
-  .endif # PLY_CFG_UseEventTracks
+  .endif # PLY_CFG_UseEventTracks -------------------------------------------}}}
 
         CLR  @$Channel1_WaitCounter
         CLR  @$Channel2_WaitCounter
@@ -489,15 +485,15 @@ SetCurrentLineBeforeReadLine: # playerAkg/sources/PlayerAkg.asm:779
 ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         # Reads the Speed Track.
         #-------------------------------------------------------------------
-  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
+  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC ---------------------------{{{
     .error # playerAkg/sources/PlayerAkg.asm:786
-  .endif # PLY_CFG_UseSpeedTracks
+  .endif # PLY_CFG_UseSpeedTracks -------------------------------------------}}}
 
         # Reads the Event Track.
-        #-------------------------------------------------------------------
+        #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
     .error # playerAkg/sources/PlayerAkg.asm:828
-  .endif # PLY_CFG_UseEventTracks
+  .endif # PLY_CFG_UseEventTracks -------------------------------------------}}}
 
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -507,7 +503,7 @@ ReadLine: # playerAkg/sources/PlayerAkg.asm:784
 
 .macro ReadTrack cN # playerAkg/sources/PlayerAkg.asm:873 -------------------{{{
         # Lines to wait?
-        DEC  (PC)+; Channel\cN\()_WaitCounter: .word 0
+        DECB (PC)+; Channel\cN\()_WaitCounter: .word 0
         BMI  Channel\cN\()_ReadTrack
         # Still some lines to wait.
         JMP  Channel\cN\()_ReadCellEnd
@@ -884,6 +880,8 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # Sends the registers to the PSG. Only general registers are sent,
 # the specific ones have already been sent.
 SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
+       #JMP  end_of_the_send
+ 
         MOV  $0177360,R4
         MOV  $PSGReg01_Instr,R5
 
@@ -972,10 +970,13 @@ SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
 PSGReg13_End:
   .endif # PLY_CFG_UseHardwareSounds
 
+end_of_the_send:
+
         # playerAkg/sources/PlayerAkg.asm:2209
         MOV  (PC)+,SP; SaveSP: .word 0
-
+.list
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
+.nolist
 
         PSGReg01_Instr: .word 0
         PSGReg23_Instr: .word 0
@@ -1030,7 +1031,7 @@ Channel\cN\()_ReadEffectsEnd:
         ChannelSubcodes 3
 
         # ** NO CODE between the code above and below! **
-  .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2269
+  .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2269 {{{
 # IN:   R5 = Points on the effect blocks
 #       R4 = Where to go to when over.
 #       IX = Address from which the data of the instrument are modified.
@@ -1045,12 +1046,11 @@ Channel_ReadEffects:
         ASLB R3       #  It may be an index or a relative address.
         BCS  Channel_ReadEffects_RelativeAddress
 
-.list
         # Index.
         # The index is already *2.
         MOV  0(R3),R3 # Gets the address referred by the table.
        .equiv Channel_ReadEffects_EffectBlocks1, . - 2
-.nolist
+
 Channel_RE_EffectAddressKnown:
         # R3 points on the current effect block header/data.
         MOVB (R3)+,R0 # Gets the effect number/more effect flag.
@@ -1080,7 +1080,7 @@ Channel_ReadEffects_RelativeAddress:
         BISB (R5)+,R3 # Reads the relative LSB.
         ADD  (PC)+,R3; Channel_ReadEffects_EffectBlocks2: .word 0
         BR   Channel_RE_EffectAddressKnown
-  .endif # PLY_CFG_UseEffects # playerAkg/sources/PlayerAkg.asm:2359
+  .endif # PLY_CFG_UseEffects # playerAkg/sources/PlayerAkg.asm:2359 --------}}}
 
 
 # ---------------------------------
@@ -1088,27 +1088,26 @@ Channel_ReadEffects_RelativeAddress:
 # IN:    R5  = pointer on the Instrument data cell to read.
 #        IX  = can be modified.
 R_Retrig: .word 0
-#            = Instrument step (>=0). Useful for retrig.
-#        SP  = normal use of the stack, do not pervert it!
-# PSGReg7     = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
-#              By default, the noise is OFF, the sound is ON, so no need to do
-#              anything if these values match.
-#        R2  = inverted volume.
-#        R0  = SET BELOW: first byte of the data, shifted of 3 bits to the right.
-#        R1  = SET BELOW: first byte of the data, unmodified.
-#        R4  = track pitch.
+#  R_Retrig = Instrument step (>=0). Useful for retrig.
+#        SP = normal use of the stack, do not pervert it!
+#   PSGReg7 = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
+#             By default, the noise is OFF, the sound is ON, so no need to do
+#             anything if these values match.
+#        R2 = inverted volume.
+#        R0 = SET BELOW: first byte of the data, shifted of 3 bits to the right.
+#        R1 = SET BELOW: first byte of the data, unmodified.
+#        R4 = track pitch.
 #        R3 = 0 / note (instrument + Track transposition).
-#        R_Tmp: temp, use at will. SRC
-#        BC' = temp, use at will.
+#     R_Tmp = temp, use at will. SRC
 
-# OUT:   R5  = new pointer on the Instrument (may be on the empty sound).
+# OUT:   R5 = new pointer on the Instrument (may be on the empty sound).
 #              If not relevant, any value can be returned, it doesn't matter.
-#        R_Retrig = Not 0 if retrig for this channel.
-#        PSGReg7  = register 7, updated, as if it was the channel 1
-#                   (so, bit 2 and 5 filled only).
-#        R2  = volume to encode (0-16).
-#        R4  = software period. If not relevant, do not set it.
-#        R3  = output period.
+#  R_Retrig = Not 0 if retrig for this channel.
+#   PSGReg7 = register 7, updated, as if it was the channel 1
+#             (so, bit 2 and 5 filled only).
+#        R2 = volume to encode (0-16).
+#        R4 = software period. If not relevant, do not set it.
+#        R3 = output period.
 
 .equiv BitForSound, 0b00000100
 .equiv BitForNoise, 0b00100000
@@ -1273,20 +1272,20 @@ H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
 
 # Common code for calculating the period, regardless of Soft or Hard.
 # The same register constraints as the methods above apply.
-# IN:    R5  = the next bytes to read.
-#        R4  = track pitch
-#        R3  = note + transposition.
-#        R2  = do not modify.
-#        R1  = contains three bits:
-#                b7: forced period? (if yes, the two other bits are irrelevant)
-#                b6: arpeggio?
-#                b5: pitch?
-#        Carry: Simple sound?
+# IN:   R5  = the next bytes to read.
+#       R4  = track pitch
+#       R3  = note + transposition.
+#       R2  = do not modify.
+#       R1  = contains three bits:
+#             b7: forced period? (if yes, the two other bits are irrelevant)
+#             b6: arpeggio?
+#             b5: pitch?
+#       Carry: Simple sound?
 #
-# OUT:   R1 = shift three times to the left.
-#        R2 = unmodified.
-#        R3 = calculated period.
-#        R5 = advanced.
+# OUT:  R1 = shift three times to the left.
+#       R2 = unmodified.
+#       R3 = calculated period.
+#       R5 = advanced.
 S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         # Simple sound? Checks the carry.
   .ifdef UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
@@ -1299,12 +1298,12 @@ S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         ASL  R3
         MOV  PeriodTable(R3),R3
         ADD  R4,R3
-        # Important: the bits must be shifted so that B is in the same state
+        # Important: the bits must be shifted so that R1 is in the same state
         # as if it were not a "simple" sound.
         ROLB R1
         ROLB R1
         ROLB R1
-        # No need to modify R7.
+        # No need to modify PSG R7.
 RETURN
 
   .ifdef UseInstrumentForcedPeriodsOrArpeggiosOrPitchs # CONFIG SPECIFIC
@@ -1326,13 +1325,12 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
         # playerAkg/sources/PlayerAkg.asm:2835
         # TODO: check if it's ok to add word instead of byte (overflow wont happen)
         ADD  R0,R4 # We don't care about overflow, no time for that.
-
 S_Or_H_AfterArpeggio:
     .endif # UseInstrumentArpeggios
 
         # Pitch?
         ROLB R1
-    .ifdef UseInstrumentPitchs # CONFIG SPECIFIC
+    .ifdef UseInstrumentPitchs # CONFIG SPECIFIC ----------------------------{{{
         BCC  S_Or_H_AfterPitch
         # Reads the pitch. Slow, but shouldn't happen so often.
         # TODO: check if it works as intended
@@ -1343,7 +1341,7 @@ S_Or_H_AfterArpeggio:
         SWAB R0
         ADD  R0,R4 # Adds the cell pitch to the track pitch
 S_Or_H_AfterPitch:
-    .endif # UseInstrumentPitchs
+    .endif # UseInstrumentPitchs --------------------------------------------}}}
         # Calculates the note period from the note of the track.
         ASL  R3
         MOV  PeriodTable(R3),R3
@@ -1477,16 +1475,16 @@ EffectTable:
 # Effects.
 # ----------------------------------------------------------------
 # For all effects:
-# IN:    DE' = Points on the data of this effect.
-#        IX = Address from which the data of the instrument are modified.
-#        IY = Address from which the data of the channels (pitch, volume, etc) are modified.
-#        HL = Must NOT be modified.
-#        WARNING, we are on auxiliary registers!
+# IN:   DE' = Points on the data of this effect.
+#       IX = Address from which the data of the instrument are modified.
+#       IY = Address from which the data of the channels (pitch, volume, etc) are modified.
+#       HL = Must NOT be modified.
+#       WARNING, we are on auxiliary registers!
 #
-#        SP = Can be modified at will.
+#       SP = Can be modified at will.
 #
-# OUT:   DE' = Points after on the data of this effect.
-#        WARNING, remains on auxiliary registers!
+# OUT:  DE' = Points after on the data of this effect.
+#       WARNING, remains on auxiliary registers!
 # ----------------------------------------------------------------
 
   .ifdef PLY_CFG_UseEffect_Reset # CONFIG SPECIFIC
