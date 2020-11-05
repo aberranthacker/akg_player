@@ -1326,11 +1326,10 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
         ROLB R1
     .ifdef UseInstrumentArpeggios # CONFIG SPECIFIC
         BCC  S_Or_H_AfterArpeggio
-        CLR  R0
-        BISB (R5)+,R0
+        MOVB (R5)+,R0 # can be negative, sign extension is welcome
         # playerAkg/sources/PlayerAkg.asm:2835
         # TODO: check if it's ok to add word instead of byte (overflow wont happen)
-        ADD  R0,R4 # We don't care about overflow, no time for that.
+        ADD  R0,R3 # We don't care about overflow, no time for that.
 S_Or_H_AfterArpeggio:
     .endif # UseInstrumentArpeggios
 
