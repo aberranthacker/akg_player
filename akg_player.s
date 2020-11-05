@@ -448,8 +448,11 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .endif # UseSpecialTracks -------------------------------------------------}}}
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
-        MOVB (SP)+,@$Channel2_Transposition
-        MOVB (SP)+,@$Channel3_Transposition
+        # MOVB (SP)+,dst autoincrements SP by 2 anyway
+        MOV  (SP)+,R5
+        MOVB R5,@$Channel2_Transposition
+        SWAB R5
+        MOVB R5,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
@@ -528,7 +531,7 @@ Channel\cN\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
         DEC  R0
         BZE  Channel\cN\()_SmallWait        # 62 = small wait, no effect.
         # 63 = escape code for note, maybe effects.
-        # Reads the note in the next byte (HL has already been incremented).
+        # Reads the note in the next byte
         CLR  R0
         BISB (R5)+,R0
         BR   Channel\cN\()_AfterNoteKnown
