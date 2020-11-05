@@ -436,7 +436,8 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
         SWAB R5
-        MOVB R5,@$Channel1_Transposition
+        MOVB R5,R0 # can be negative, we need sign extension
+        MOV  R0,@$Channel1_Transposition
   .endif # PLY_CFG_UseTranspositions
 
         # Reads the transposition2 and 3.
@@ -450,9 +451,11 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
         # MOVB (SP)+,dst autoincrements SP by 2 anyway
         MOV  (SP)+,R5
-        MOVB R5,@$Channel2_Transposition
+        MOVB R5,R0 # can be negative, we need sign extension
+        MOV  R0,@$Channel2_Transposition
         SWAB R5
-        MOVB R5,@$Channel3_Transposition
+        MOVB R5,R0 # can be negative, we need sign extension
+        MOV  R0,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
@@ -1334,6 +1337,7 @@ S_Or_H_AfterArpeggio:
         # Pitch?
         ROLB R1
     .ifdef UseInstrumentPitchs # CONFIG SPECIFIC ----------------------------{{{
+      .error
         BCC  S_Or_H_AfterPitch
         # Reads the pitch. Slow, but shouldn't happen so often.
         # TODO: check if it works as intended
