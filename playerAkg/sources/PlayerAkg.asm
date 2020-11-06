@@ -1,6 +1,7 @@
 ;       Arkos Tracker 2 player "generic" player.
 ;       By Targhan/Arkos.
 ;       Psg optimization trick on CPC by Madram/Overlanders.
+;       (Bundled with Arkos Tracker V2.0.0 alpha 9 (June 2020))
 ;
 ;       This compiles with RASM. Check the compatibility page on the Arkos Tracker 2 website, it contains a source converter to any Z80 assembler!
 ;
@@ -48,7 +49,6 @@
 ;         This allows the Z80 code to be faster and simpler.
 ;
 ;       -------------------------------------------------------
-
 
 PLY_AKG_Start:
 
