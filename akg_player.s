@@ -436,7 +436,7 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
         SWAB R5
-        MOVB R5,R0 # can be negative, we need sign extension
+        MOVB R5,R0 # can be negative, sign extension is required
         MOV  R0,@$Channel1_Transposition
   .endif # PLY_CFG_UseTranspositions
 
@@ -451,10 +451,10 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
         # MOVB (SP)+,dst autoincrements SP by 2 anyway
         MOV  (SP)+,R5
-        MOVB R5,R0 # can be negative, we need sign extension
+        MOVB R5,R0 # can be negative, sign extension is required
         MOV  R0,@$Channel2_Transposition
         SWAB R5
-        MOVB R5,R0 # can be negative, we need sign extension
+        MOVB R5,R0 # can be negative, sign extension is required
         MOV  R0,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
@@ -585,8 +585,7 @@ Channel\cN\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
         ROLB R2 # New Instrument?
         BCC  Channel\cN\()_SameInstrument
         # Gets the new Instrument.
-        CLR  R4
-        BISB (R5)+,R4
+        MOVB (R5)+,R4 # NOTE: 127 instruments supported only
 
         ASL  R4
         MOV  0(R4),R4
@@ -731,7 +730,7 @@ Channel\cN\()_VolumeSetAgain:
         SWAB R5
         MOV  R5,@$Channel\cN\()_InvertedVolumeIntegerAndDecimal
 Channel{cN}_VolumeSlide_End:
-  .endif # UseEffect_VolumeSlide #----------------------------------}}}
+  .endif # UseEffect_VolumeSlide #-------------------------------------------}}}
 
         SWAB R5
         MOVB R5,@$Channel\cN\()_GeneratedCurrentInvertedVolume
