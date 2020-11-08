@@ -25,6 +25,7 @@
      .global PLY_AKG_Stop
   .endif
 
+      #SkipPSGSend = 1
        .include "akg_player_config.s"
 
 # Agglomerates some flags, because they are treated the same way by this player.
@@ -442,9 +443,11 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
 
         # Reads the transposition2 and 3.
   .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
-    .error
     .ifndef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
-      .error
+        # Transpositions not used? We could stop here.
+        # BUT the SpecialTracks, if present, must access their data after.
+        # So in this case, the transpositions must be skipped.
+        MOV  (SP)+,R5
     .endif # PLY_CFG_UseTranspositions
   .endif # UseSpecialTracks -------------------------------------------------}}}
 
@@ -459,14 +462,18 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC ---------------------------------{{{
-    .error
+        # Reads the special Tracks addresses.
+        # Must be performed even SpeedTracks not used, because EventTracks might
+        # be present, the word must be skipped.
+        MOV  (SP)+,R5
     # Reads the special Tracks addresses.
     .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
-      .error
+        MOV  R5, @$SpeedTrack_PtTrack
     .endif # PLY_CFG_UseSpeedTracks
 
     .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-      .error
+        MOV  (SP)+,R5
+        MOV  R5, @$EventTrack_PtTrack
     .endif # PLY_CFG_UseEventTracks
   .endif # UseSpecialTracks -------------------------------------------------}}}
 
@@ -490,9 +497,32 @@ SetCurrentLineBeforeReadLine: # playerAkg/sources/PlayerAkg.asm:779
         # Reads the new line (notes, effects, Special Tracks, etc.).
 ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         # Reads the Speed Track.
+  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:786 {{{
         #-------------------------------------------------------------------
-  .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC ---------------------------{{{
-    .error # playerAkg/sources/PlayerAkg.asm:786
+        MOV  (PC)+,R0; SpeedTrack_WaitCounter: .word 0 # Lines to wait?
+        SUB  $1,R0
+        BCC  SpeedTrack_MustWait # Jump if there are still lines to wait.
+        # No more lines to wait. Reads a new data.
+        # It may be an event value or a wait value.
+        MOV  (PC)+,R5; SpeedTrack_PtTrack: .word 0
+        CLR  R0
+        BISB (R5)+,R0
+        ASR  R0 # Bit 0: wait?
+        # Jump if wait: R0 is the wait value.
+        BCS  SpeedTrack_StorePointerAndWaitCounter
+        # Value found. If 0, escape value (rare).
+        BNZ  SpeedTrack_NormalValue
+        # Escape code. Reads the right value.
+        MOVB (R5)+,R0
+SpeedTrack_NormalValue:
+        MOVB R0,@$CurrentSpeed
+
+        CLR  R0 # Next time, a new value is read.
+SpeedTrack_StorePointerAndWaitCounter:
+        MOV  R5,@$SpeedTrack_PtTrack
+SpeedTrack_MustWait:
+        MOV  R0,@$SpeedTrack_WaitCounter
+SpeedTrack_End:
   .endif # PLY_CFG_UseSpeedTracks -------------------------------------------}}}
 
         # Reads the Event Track.
