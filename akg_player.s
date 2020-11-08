@@ -946,7 +946,7 @@ Channel\cN\()_ArpeggioTableSpeed: .word 0
 Channel\cN\()_ArpeggioBaseSpeed: .word 0
 Channel\cN\()_ArpeggioTableBase: .word 0
     .endif # PLY_AKS_UseEffect_Arpeggio
-    .ifdef # PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
+    .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
 Channel\cN\()_PitchTableSpeed: .word 0
 Channel\cN\()_PitchBaseSpeed: .word 0
 Channel\cN\()_PitchTableBase: .word 0
@@ -956,12 +956,12 @@ Channel\cN\()_AfterArpeggioPitchVariables:
 
     .ifdef PLY_CFG_UseEffect_PitchGlide # CONFIG SPECIFIC
 Channel\cN\()_Glide_BeforeEnd:
-        # ;Restores HL.
+        # Restores HL.
         MOV  (PC)+,R5; Channel\cN\()_Glide_SaveHL: .word 0
 Channel\cN\()_Glide_End:
     .endif # PLY_CFG_UseEffect_PitchGlide
 
-PLY_AKG_Channel{channelNumber}_Pitch_End:
+PLY_AKG_Channel\cN\()_Pitch_End:
 
   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1466
 
@@ -1217,8 +1217,8 @@ Channel\cN\()_MaybeEffects:
 # IN:    R5 = Points on the effect blocks
 # OUT:   R5 = Points after on the effect blocks
 Channel\cN\()_ReadEffects: # playerAkg/sources/PlayerAkg.asm:2250
-        MOV  $Channel\cN\()_SoundStream_RelativeModifierAddress, @$SoundStream_RelativeModifierAddress
         MOV  $Channel\cN\()_PlayInstrument_RelativeModifierAddress, @$PlayInstrument_RelativeModifierAddress
+        MOV  $Channel\cN\()_SoundStream_RelativeModifierAddress, R3
         MOV  $Channel\cN\()_BeforeEnd_StoreCellPointer, @$Channel_ReadEffects_EndJump
         # Only adds a jump if this is not the last channel,
         # as the code only need to jump below.
@@ -1242,21 +1242,20 @@ Channel\cN\()_ReadEffectsEnd:
 # OUT:  R5 = Points after on the effect blocks
 Channel_ReadEffects:
        .=Channel3_ReadEffectsEnd # Makes sure this code is directly below the one above.
-       #MOV  R4,@$Channel_ReadEffects_EndJump
 
-        CLR  R3
-        BISB (R5)+,R3 # Reads the effect block.
-        ASLB R3       #  It may be an index or a relative address.
+        CLR  R4
+        BISB (R5)+,R4 # Reads the effect block.
+        ASLB R4       #  It may be an index or a relative address.
         BCS  Channel_ReadEffects_RelativeAddress
 
         # Index.
         # The index is already *2.
-        MOV  0(R3),R3 # Gets the address referred by the table.
+        MOV  0(R4),R4 # Gets the address referred by the table.
        .equiv Channel_ReadEffects_EffectBlocks1, . - 2
 
 Channel_RE_EffectAddressKnown:
-        # R3 points on the current effect block header/data.
-        MOVB (R3)+,R0 # Gets the effect number/more effect flag.
+        # R4 points on the current effect block header/data.
+        MOVB (R4)+,R0 # Gets the effect number/more effect flag.
         # Stores the flag indicating whether there are more effects.
         MOVB R0,@$Channel_RE_ReadNextEffectInBlock
 
@@ -1278,10 +1277,10 @@ Channel_RE_EffectReturn:
 
 
 Channel_ReadEffects_RelativeAddress:
-        ASR  R3       # R0 was the relative MSB. Only 7 relevant bits.
-        SWAB R3
-        BISB (R5)+,R3 # Reads the relative LSB.
-        ADD  (PC)+,R3; Channel_ReadEffects_EffectBlocks2: .word 0
+        ASR  R4       # R0 was the relative MSB. Only 7 relevant bits.
+        SWAB R4
+        BISB (R5)+,R4 # Reads the relative LSB.
+        ADD  (PC)+,R4; Channel_ReadEffects_EffectBlocks2: .word 0
         BR   Channel_RE_EffectAddressKnown
   .endif # PLY_CFG_UseEffects # playerAkg/sources/PlayerAkg.asm:2359 --------}}}
 
@@ -1573,7 +1572,6 @@ RETURN
 # Effects management.
 # -----------------------------------------------------------------------------------
 .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2981
-        SoundStream_RelativeModifierAddress:    .word 0 # iy
         PlayInstrument_RelativeModifierAddress: .word 0 # ix
 # All the effects code.
 EffectTable:
@@ -1679,16 +1677,15 @@ EffectTable:
 # IN:   R0 = Can be modified at will.
 #       R1 = Can be modified at will.
 #       R2 = Can be modified at will.
-#       R3 = Points on the data of this effect.
-#       R4 = Can be modified at will.
+#       R3 = Address from which the data of the channels (pitch, volume, etc) are modified.
+#       R4 = Points on the data of this effect.
 #       R5 = Must NOT be modified.
 #
 #       IX = Address from which the data of the instrument are modified.
-#       IY = Address from which the data of the channels (pitch, volume, etc) are modified.
 #
 #       SP = Can be modified at will.
 #
-# OUT:  R3 = Points after on the data of this effect.
+# OUT:  R4 = Points after on the data of this effect.
 # ----------------------------------------------------------------
 
   .ifdef PLY_CFG_UseEffect_Reset # CONFIG SPECIFIC # ------------------------{{{
@@ -1697,39 +1694,38 @@ Effect_ResetFullVolume: # :3087
         BR   Effect_ResetVolume_AfterReading
 
 Effect_Reset:
-        MOVB (R3)+,R0
+        MOVB (R4)+,R0
 
 Effect_ResetVolume_AfterReading:
-        MOV  @$SoundStream_RelativeModifierAddress,R1
        .set offset, Channel1_InvertedVolumeInteger - Channel1_SoundStream_RelativeModifierAddress
-        MOVB R0, offset(R1)
+        MOVB R0, offset(R3)
 
         # The current pitch is reset.
     .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
        .set offset, Channel1_Pitch - Channel1_SoundStream_RelativeModifierAddress
-        CLR  offset(R1)
+        CLR  offset(R3)
     .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
 
         MOV  $OPCODE_CLC, R0
 
     .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
        .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R0, offset(R3)
     .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
 
     .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC
        .set offset, Channel1_IsPitchTable - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R0, offset(R3)
     .endif # PLY_CFG_UseEffect_PitchTable
 
     .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
        .set offset, Channel1_IsArpeggioTable - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R0, offset(R3)
     .endif # PLY_AKS_UseEffect_Arpeggio
 
     .ifdef PLY_AKG_UseEffect_VolumeSlide # CONFIG SPECIFIC
        .set offset, Channel1_IsVolumeSlide - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R0, offset(R3)
     .endif # PLY_AKG_UseEffect_VolumeSlide
 
         JMP  Channel_RE_EffectReturn
@@ -1737,14 +1733,12 @@ Effect_ResetVolume_AfterReading:
 
   .ifdef PLY_CFG_UseEffect_SetVolume # CONFIG SPECIFIC
 Effect_Volume: # playerAkg/sources/PlayerAkg.asm:3123
-        MOV  @$SoundStream_RelativeModifierAddress,R1
-
        .set offset, Channel1_InvertedVolumeInteger - Channel1_SoundStream_RelativeModifierAddress
-        MOVB (R3)+, offset(R1) # Reads the inverted volume.
+        MOVB (R4)+, offset(R3) # Reads the inverted volume.
 
     .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC
        .set offset, Channel1_IsVolumeSlide - Channel1_SoundStream_RelativeModifierAddress
-        MOV  $OPCODE_CLC, offset(R1)
+        MOV  $OPCODE_CLC, offset(R3)
     .endif # UseEffect_VolumeSlide
 
         JMP  Channel_RE_EffectReturn
@@ -1752,36 +1746,33 @@ Effect_Volume: # playerAkg/sources/PlayerAkg.asm:3123
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC -----------------------{{{
 Effect_ArpeggioTable: # playerAkg/sources/PlayerAkg.asm:3137
-        MOV  @$SoundStream_RelativeModifierAddress,R1
-
-        MOVB (R3)+,R0 # Reads the arpeggio table index.
-        ASL  R0
-        MOV  0(R0),R0 # Finds the address of the Arpeggio.
+        MOVB (R4)+,R1 # Reads the arpeggio table index.
+        ASL  R1
+        MOV  0(R1),R1 # Finds the address of the Arpeggio.
        .equiv ArpeggiosTable, .-2
 
         # Reads the speed.
+        MOVB (R1)+,R0
        .set offset, Channel1_ArpeggioTableSpeed - Channel1_SoundStream_RelativeModifierAddress
-        MOVB (R0), offset(R1)
+        MOVB R0, offset(R3)
        .set offset, Channel1_ArpeggioBaseSpeed - Channel1_SoundStream_RelativeModifierAddress
-        MOVB (R0)+, offset(R1)
+        MOVB R0, offset(R3)
 
        .set offset, Channel1_ArpeggioTable - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R1, offset(R3)
        .set offset, Channel1_ArpeggioTableBase - Channel1_SoundStream_RelativeModifierAddress
-        MOV  R0, offset(R1)
+        MOV  R1, offset(R3)
 
        .set offset, Channel1_IsArpeggioTable - Channel1_SoundStream_RelativeModifierAddress
-        MOV  $OPCODE_SEC, offset(R1)
+        MOV  $OPCODE_SEC, offset(R3)
        .set offset, Channel1_ArpeggioTableCurrentStep - Channel1_SoundStream_RelativeModifierAddress
-        CLR  offset(R1)
+        CLR  offset(R3)
 
         JMP  Channel_RE_EffectReturn
 
 Effect_ArpeggioTableStop:
-        MOV  @$SoundStream_RelativeModifierAddress,R1
-
        .set offset, Channel1_IsArpeggioTable - Channel1_SoundStream_RelativeModifierAddress
-        MOV  $OPCODE_CLC, offset(R1)
+        MOV  $OPCODE_CLC, offset(R3)
 
         JMP  Channel_RE_EffectReturn
   .endif # PLY_AKS_UseEffect_Arpeggio ---------------------------------------}}}
