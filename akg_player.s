@@ -259,7 +259,7 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         MOVB (R5)+,@$CurrentSpeed
         MOVB (R5)+,@$BaseNoteIndex
 
-        INC  R5 # 7 bytes of metadata, align the pointer on word
+        INC  R5 # align on word boundary, kind of
         MOV  R5,@$ReadLinker_PtLinker
 
         # Initializes values. You can remove this part if you don't stop/restart your song.
@@ -610,7 +610,7 @@ Channel\cN\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
 
         MOV  R0,@$Channel\cN\()_TrackNote
 
-        # HL = next data. C = data byte.
+        # R5 = next data. R2 = data byte.
         ROLB R2 # New Instrument?
         BCC  Channel\cN\()_SameInstrument
         # Gets the new Instrument.
@@ -1083,8 +1083,13 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # Sends the registers to the PSG. Only general registers are sent,
 # the specific ones have already been sent.
 SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
-       #JMP  end_of_the_send
- 
+     .ifdef SkipPSGSend
+        JMP  end_of_the_send
+     .else
+        NOP
+        NOP
+     .endif
+
         MOV  $0177360,R4
         MOV  $PSGReg01_Instr,R5
 
@@ -1177,9 +1182,7 @@ end_of_the_send:
 
         # playerAkg/sources/PlayerAkg.asm:2209
         MOV  (PC)+,SP; SaveSP: .word 0
-.list
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
-.nolist
 
         PSGReg01_Instr: .word 0
         PSGReg23_Instr: .word 0
@@ -1530,7 +1533,6 @@ S_Or_H_AfterArpeggio:
         # Pitch?
         ROLB R1
     .ifdef UseInstrumentPitchs # CONFIG SPECIFIC ----------------------------{{{
-      .error
         BCC  S_Or_H_AfterPitch
         # Reads the pitch. Slow, but shouldn't happen so often.
         # TODO: check if it works as intended
