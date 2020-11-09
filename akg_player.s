@@ -762,7 +762,7 @@ Channel{cN}_VolumeSlide_End:
         SWAB R5
         MOVB R5,@$Channel\cN\()_GeneratedCurrentInvertedVolume
 
-        # Use Arpeggio table? OUT: C = value.
+        # Use Arpeggio table? OUT: R2 = value.
         #----------------------------------------
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1169 {{{
     .error
@@ -806,18 +806,18 @@ Channel\cN\()_ArpeggioTable_End:
   .endif # PLY_AKS_UseEffect_Arpeggio # -------------------------------------}}}
 
 
-        # Use Pitch table? OUT: DE = pitch value.
-        # C must NOT be modified!
+        # Use Pitch table? OUT: R3 = pitch value.
+        # R2 must NOT be modified!
         #-----------------------
         CLR  R3 # Default value.
 
-  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1232
+  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1232 {{{
     .error
-  .endif # PLY_CFG_UseEffect_PitchTable
+  .endif # PLY_CFG_UseEffect_PitchTable -------------------------------------}}}
 
         # Pitch management. The Glide is embedded, but relies on the Pitch
         # (Pitch can exist without Glide, but Glide can not without Pitch).
-        # Do NOT modify C or DE.
+        # Do NOT modify R2 or R3.
         #------------------------------------------------------------------------------------------
   .ifndef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1276
         CLR  R5 # No pitch.
@@ -825,23 +825,24 @@ Channel\cN\()_ArpeggioTable_End:
         # The "real" vars are a bit below.
 # Put here, no need for better place (see the real label below, with the same name).
 Channel\cN\()_SoundStream_RelativeModifierAddress:
-    .ifdef PLY_AKS_UseEffect_ArpeggioTableOrPitchTable # CONFIG SPECIFIC
+    .ifdef PLY_AKS_UseEffect_ArpeggioTableOrPitchTable # CONFIG SPECIFIC ----{{{
+      .error
         BR   Channel\cN\()_AfterArpeggioPitchVariables
-      .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1284
+      .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1284 {{{
 Channel\cN\()_ArpeggioTableSpeed: .word 0
 Channel\cN\()_ArpeggioBaseSpeed: .word 0
 Channel\cN\()_ArpeggioTableBase: .word 0
-      .endif # PLY_AKS_UseEffect_Arpeggio
+      .endif # PLY_AKS_UseEffect_Arpeggio -----------------------------------}}}
 
-      .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1291
+      .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1291 {{{
 Channel\cN\()_PitchTableSpeed: .word 0
 Channel\cN\()_PitchBaseSpeed: .word 0
 Channel\cN\()_PitchTableBase: .word 0
-      .endif # PLY_CFG_UseEffect_PitchTable # playerAkg/sources/PlayerAkg.asm:1297
+      .endif # PLY_CFG_UseEffect_PitchTable ---------------------------------}}}
 Channel\cN\()_AfterArpeggioPitchVariables:
-    .endif # PLY_AKS_UseEffect_ArpeggioTableOrPitchTable # playerAkg/sources/PlayerAkg.asm:1299
+    .endif # PLY_AKS_UseEffect_ArpeggioTableOrPitchTable --------------------}}}
   .else # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1301
-        MOV  (PC)+,R5
+        MOV  (PC)+,R5 # -----------------------------------------------------{{{
 Channel\cN\()_Pitch: .word 0
 Channel\cN\()_IsPitch: CLC # Is there a Pitch? Automodified. SEC if yes, CLC if not.
         BCC  Channel\cN\()_Pitch_End
@@ -961,9 +962,8 @@ Channel\cN\()_Glide_BeforeEnd:
 Channel\cN\()_Glide_End:
     .endif # PLY_CFG_UseEffect_PitchGlide
 
-PLY_AKG_Channel\cN\()_Pitch_End:
-
-  .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1466
+PLY_AKG_Channel\cN\()_Pitch_End: # ------------------------------------------}}}
+  .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1466 }}}
 
         ADD  R3,R5 # Adds the Pitch Table value.
         MOV  R5,@$Channel\cN\()_GeneratedCurrentPitch
@@ -1006,7 +1006,7 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
         MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
   .endif # PLY_AKS_UseEffect_Arpeggio
 
-        # exx # playerAkg/sources/PlayerAkg.asm:1539
+        # playerAkg/sources/PlayerAkg.asm:1539
 
         MOV  (PC)+, @(PC)+
         Channel\cN\()_InstrumentStep:
@@ -1184,7 +1184,9 @@ end_of_the_send:
         MOV  (PC)+,SP; SaveSP: .word 0
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
 
+.list
         PSGReg01_Instr: .word 0
+.nolist
         PSGReg23_Instr: .word 0
         PSGReg45_Instr: .word 0
         PSGReg6_8_Instr:
@@ -1295,21 +1297,21 @@ R_Retrig: .word 0
 #   PSGReg7 = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
 #             By default, the noise is OFF, the sound is ON, so no need to do
 #             anything if these values match.
-#        R2 = inverted volume.
 #        R0 = SET BELOW: first byte of the data, shifted of 3 bits to the right.
 #        R1 = SET BELOW: first byte of the data, unmodified.
-#        R4 = track pitch.
+#        R2 = inverted volume.
 #        R3 = 0 / note (instrument + Track transposition).
+#        R4 = track pitch.
 #     R_Tmp = temp, use at will. SRC
 
 # OUT:   R5 = new pointer on the Instrument (may be on the empty sound).
-#              If not relevant, any value can be returned, it doesn't matter.
+#             If not relevant, any value can be returned, it doesn't matter.
 #  R_Retrig = Not 0 if retrig for this channel.
 #   PSGReg7 = register 7, updated, as if it was the channel 1
 #             (so, bit 2 and 5 filled only).
 #        R2 = volume to encode (0-16).
-#        R4 = software period. If not relevant, do not set it.
 #        R3 = output period.
+#        R4 = software period. If not relevant, do not set it.
 
 .equiv BitForSound, 0b00000100
 .equiv BitForNoise, 0b00100000
@@ -1436,7 +1438,38 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
   .ifndef PLY_CFG_SoftToHard # CONFIG SPECIFIC
         BR   EndWithoutLoop
   .else
-    .error
+        BCS  EndWithoutLoop
+
+       /* * * * * * * * * *
+        * "Soft to Hard". *
+        * * * * * * * * * */
+
+        CALL StoH_HToS_SandH_Common
+        # We have the ratio jump calculated and the primary period too.
+        # It must be divided to get the hardware frequency.
+        SUB  $7,R0 # convert the ratio jump to number of shifts
+        ASH  R0,R3
+        ADC  R3
+
+    .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC
+        # Gets R1, we need the bit to know if a hardware pitch shift is added.
+        MOV  R1,R0
+        # Any Hardware pitch shift?
+        ROLB R0
+        BCC  SH_NoHardwarePitchShift
+        # Pitch shift. Reads it.
+        CLR  R0
+        BISB (R5)+,R0
+        SWAB R0
+        BISB (R5)+,R0
+        SWAB R0
+        ADD  R0,R3
+SH_NoHardwarePitchShift:
+    .endif # PLY_CFG_SoftToHard_HardwarePitch
+
+        MOV  R3,@$PSGHardwarePeriod_Instr
+
+        RETURN
   .endif
 
 S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
@@ -1534,7 +1567,6 @@ S_Or_H_AfterArpeggio:
     .ifdef UseInstrumentPitchs # CONFIG SPECIFIC ----------------------------{{{
         BCC  S_Or_H_AfterPitch
         # Reads the pitch. Slow, but shouldn't happen so often.
-        # TODO: check if it works as intended
         CLR  R0
         BISB (R5)+,R0
         SWAB R0
@@ -1560,12 +1592,43 @@ RETURN
         # The same register constraints as the methods above apply.
         # OUT:   HL' = frequency.
         #        A = shifted inverted ratio (xxx000),
-        #            ready to be used in a JR to multiply/divide the frequency.
+        #            ready to be used in a BR to multiply/divide the frequency.
         #        B = bit states, shifted four times to the left
         #            (for StoH/HtoS, the msb will be "pitch shift?")
         #            (hardware for SoftTohard, software for HardToSoft).
-  .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC
-    .error
+  .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2917
+StoH_HToS_SandH_Common:
+        MOV  $16,R2 # Sets the hardware volume.
+
+        # Retrig?
+        RORB R0
+    .ifdef PLY_AKG_UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
+      .error
+    .endif # PLY_AKG_UseRetrig_StoH_HtoS_SandH
+
+        # Calculates the hardware envelope.
+        # The value given is from 8-15, but encoded as 0-7.
+        BIC  $0xFFF80,R0
+        ADD  $8,R0
+        MOV  R0,@$PSGReg13_Instr
+
+        # Noise? If yes, reads the next byte.
+        ROLB R1 # is this correct register???
+    .ifdef PLY_AKG_UseNoise_StoH_HtoS_SandH # CONFIG SPECIFIC
+      .error
+    .endif # PLY_AKG_UseNoise_StoH_HtoS_SandH
+
+        # Read the next data byte.
+        MOVB  (R5)+,R0
+        MOV   R0,R1
+        # Simple (no need to test the other bits)?
+        # The carry is transmitted to the called code below.
+        ROLB  R1
+        # Call another common subcode.
+        CALL S_Or_H_CheckIfSimpleFirst_CalculatePeriod
+        # Let's calculate the hardware frequency from it.
+        BIC   $0177770,R0
+RETURN
   .endif # PLY_CFG_UseHardwareSounds
 
 # -----------------------------------------------------------------------------------
