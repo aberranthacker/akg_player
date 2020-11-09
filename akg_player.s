@@ -25,7 +25,7 @@
      .global PLY_AKG_Stop
   .endif
 
-      #SkipPSGSend = 1
+       #SkipPSGSend = 1
        .include "akg_player_config.s"
 
 # Agglomerates some flags, because they are treated the same way by this player.
@@ -574,15 +574,14 @@ Channel\cN\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
         BR   Channel\cN\()_AfterNoteKnown
 
         # Small wait, no effect.
-Channel\cN\()_SmallWait: # playerAkg/sources/PlayerAkg.asm
-        MOV  R2,R0 # Uses bit 6/7 to indicate how many lines to wait.
-        ASH  $-6,R0
-        INC  R0 # This wait start at 2 lines, to 5.
-        MOV  R0,@$Channel\cN\()_WaitCounter
+Channel\cN\()_SmallWait: # playerAkg/sources/PlayerAkg.asm:914
+        ASH  $-6,R2 # Uses bit 6/7 to indicate how many lines to wait.
+        INC  R2 # This wait start at 2 lines, to 5.
+        MOV  R2,@$Channel\cN\()_WaitCounter
         BR   Channel\cN\()_BeforeEnd_StoreCellPointer
 
         # Wait, no effect.
-Channel\cN\()_Wait: # playerAkg/sources/PlayerAkg.asm
+Channel\cN\()_Wait: # playerAkg/sources/PlayerAkg.asm:924
         # Reads the wait value on the next byte (HL has already been incremented).
         MOVB (R5)+,@$Channel\cN\()_WaitCounter
         BR   Channel\cN\()_BeforeEnd_StoreCellPointer
@@ -708,9 +707,11 @@ Channel\cN\()_ReadCellEnd:
 .endm # ReadTrack # playerAkg/sources/PlayerAkg.asm:1081 --------------------}}}
 
         # Generates the code for each channel, from the macro above.
+        .list
         ReadTrack 1
         ReadTrack 2
         ReadTrack 3
+        .nolist
 
 
 
@@ -874,6 +875,9 @@ Channel\cN\()_PitchTrackAddOrSub:
 Channel\cN\()_PitchTrackDecimalInstr:
         ADD  (PC)+,(PC)+ #  WILL BE AUTOMODIFIED to ADD or SUB.
         Channel\cN\()_PitchTrackDecimalValue: .word 0
+        # the label is present in original code
+        # but here it acts as a commentary
+        # the only result we use down below is carry flag
         Channel\cN\()_PitchTrackDecimalCounter: .word 0
 
 Channel\cN\()_PitchTrackIntegerAdcOrSbc:
@@ -1189,6 +1193,9 @@ end_of_the_send:
 .list
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
 
+  .ifdef SkipPSGSend
+    .balign 16
+  .endif
         PSGReg01_Instr: .word 0
 .nolist
         PSGReg23_Instr: .word 0
@@ -1449,13 +1456,15 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         * * * * * * * * * */
 
         CALL StoH_HToS_SandH_Common
+        # instrument period is calculated, so R4 is free
+        MOV  R3,R4
         # We have the ratio jump calculated and the primary period too.
         # It must be divided to get the hardware frequency.
         SUB  $7,R0 # convert the number of jumps to number of shifts
-        ASH  R0,R3
-        ADC  R3
+        ASH  R0,R4
+        ADC  R4
 
-    .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC
+    .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC # -------------{{{
        .error
         # Gets R1, we need the bit to know if a hardware pitch shift is added.
         MOV  R1,R0
@@ -1468,13 +1477,13 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         SWAB R0
         BISB (R5)+,R0
         SWAB R0
-        ADD  R0,R3
+        ADD  R0,R4
 SH_NoHardwarePitchShift:
-    .endif # PLY_CFG_SoftToHard_HardwarePitch
+    .endif # PLY_CFG_SoftToHard_HardwarePitch # -----------------------------}}}
 
-        MOV  R3,@$PSGHardwarePeriod_Instr
+        MOV  R4,@$PSGHardwarePeriod_Instr
 
-        RETURN
+        RETURN # out of ReadInsrumentCell
   .endif
 
 S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
@@ -1613,7 +1622,7 @@ StoH_HToS_SandH_Common:
 
         # Calculates the hardware envelope.
         # The value given is from 8-15, but encoded as 0-7.
-        BIC  $0xFFF80,R0
+        BIC  $0xFFFF8,R0
         ADD  $8,R0
         MOV  R0,@$PSGReg13_Instr
 
@@ -1871,6 +1880,9 @@ Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259 # ---------{{{
 
         CLR  R0
         BISB (R4)+,R0
+        # the value will be added/subtracted to/from PitchTrackDecimalCounter
+        # PitchTrackDecimalCounter is 8-bit in original Z80 source code
+        # so we shift the value left by 8-bits to immitate 8-bit counter
         SWAB R0
         .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
         MOVB R0, offset(R3) # Reads the Pitch.
