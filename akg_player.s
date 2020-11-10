@@ -1022,9 +1022,12 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # playerAkg/sources/PlayerAkg.asm:1539
 
+  .ifdef PLY_CFG_UseRetrig
+    .error
         MOV  (PC)+, @(PC)+
         Channel\cN\()_InstrumentStep:
        .word 0, R_Retrig
+  .endif # PLY_CFG_UseRetrig
 
         # Instrument data to read (past the header).
         MOV  (PC)+,R5; Channel\cN\()_PtInstrument: .word 0
@@ -1045,7 +1048,15 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # The new and increased Instrument pointer is stored only if its speed
         # has been reached. (>0)
-        MOV  (PC)+,R0; R_Retrig: .word 0
+  .ifdef PLY_CFG_UseRetrig
+    .error
+        MOV  @(PC)+,R0
+        R_Retrig: .word 0
+  .else
+        MOV  (PC)+,R0
+        Channel\cN\()_InstrumentStep: .word 0
+  .endif # PLY_CFG_UseRetrig
+
         INC  R0
         # playerAkg/sources/PlayerAkg.asm:1577
         CMP  R0,(PC)+; Channel\cN\()_InstrumentSpeed: .word 0
@@ -1333,6 +1344,12 @@ Channel_ReadEffects_RelativeAddress:
 
 .equiv BitForSound, 0b00000100
 .equiv BitForNoise, 0b00100000
+  .ifdef PLY_AKG_UseRetrig_StoH_HtoS_SandH
+R_Retrig: .word 0
+  .endif
+  .ifdef PLY_CFG_HardOnly_Retrig
+R_Retrig: .word 0
+  .endif
 
 ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
         MOVB (R5)+,R0 # Gets the first byte of the cell.
