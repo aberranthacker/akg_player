@@ -21,10 +21,11 @@
 #     and so on.
 # The monitor uses this information when it loads the program.
                 .=0360
-                .byte 0b11111111
-                .byte 0b11111111
-                .byte 0b11111111
-                .byte 0b10000000
+                .byte 0b11111111 #  8
+                .byte 0b11111111 # 16
+                .byte 0b11111111 # 24
+                .byte 0b00000000 # 32
+                .byte 0b00000000 #
                 #       76543210
                 .=01000
 
@@ -89,17 +90,20 @@ PStruct:    # Parameters struct (PS)
 #----------------------------------------------------------------------------}}}
 
         .=023666
+
 PPUModuleStart:
         CLR  R0 # Subsong0
-        MOV  $TomJerrySudokuMenu_Start, R5
+        MOV  $song_start, R5
         CALL PLY_AKG_Init
+
     loop$:
         CALL PLY_AKG_Play
         WAIT
         BR  loop$
 
        .include "akg_player.s"
-       .include "Tom&Jerry - Sudoku - Menu.akg.s"
+song_start:
+       .include "song.akg.s"
        .even
 
         MOV  $PPU_PPDONE,@$PBPADR

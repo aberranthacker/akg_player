@@ -21,7 +21,7 @@ TEST.SAV : test.o
 
 test.o : akg_player.s \
          akg_player_config.s \
-         Tom&Jerry\ -\ Sudoku\ -\ Menu.akg.s \
+         song.akg.s \
          test.s $(common)
 	$(AS) -al test.s -o test.o
 
