@@ -756,7 +756,6 @@ Channel\cN\()_VolumeSlide_End:
         # Use Arpeggio table? OUT: R2 = value.
         #----------------------------------------
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:1169 {{{
-    .error "759"
         CLR  R2
 Channel\cN\()_IsArpeggioTable:
         CLC # Is there an arpeggio table? Automodified. SEC if yes, CLC if not.
@@ -765,7 +764,7 @@ Channel\cN\()_IsArpeggioTable:
         # We can read the Arpeggio table for a new value.
         MOV  (PC)+,R5
         Channel\cN\()_ArpeggioTable: .word 0 # Points on the data, after the header.
-        MOVB (R5),R2 # Reads the value.
+        MOVB (R5)+,R2 # Reads the value.
         CMP  R2,$-128 # Loop?
         BNE  Channel\cN\()_ArpeggioTable_AfterLoopTest
         # Loop. Where to?
@@ -777,16 +776,14 @@ Channel\cN\()_IsArpeggioTable:
         # R5 = pointer on what is follows.
         # R2 = value to use.
 Channel\cN\()_ArpeggioTable_AfterLoopTest:
-
         # Checks the speed.
         # If reached, the pointer can be saved to read a new value next time.
-        MOV  @$Channel\cN\()_ArpeggioTableSpeed, R3
         MOV  (PC)+,R0; Channel\cN\()_ArpeggioTableCurrentStep: .word 0
         INC  R0
-        CMP  R0,R3 # From 1 to 256.
-        # C, not NZ, because the current step may be higher than the limit if
+        CMP  R0,@$Channel\cN\()_ArpeggioTableSpeed # From 1 to 256.
+        # The current step may be higher than the limit if
         # Force Speed effect is used.
-        BCS  Channel\cN\()_ArpeggioTable_BeforeEnd_SaveStep
+        BLO  Channel\cN\()_ArpeggioTable_BeforeEnd_SaveStep
         # Stores the pointer to read a new value next time.
         MOV  R5,@$Channel\cN\()_ArpeggioTable
 
@@ -868,8 +865,7 @@ Channel\cN\()_IsPitch:
 
         # R2 must NOT be modified, stores it.
     .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-      .error
-        # в оригинале, содержимое C сохраняется в
+        # NOTE: в оригинале, содержимое C сохраняется в
         # Channel\cN\()_GeneratedCurrentArpNote в самом конце
         # ApplyTrailingEffects, и больше нигде не используется
         # почему нельзя было сохранить прям отсюда???
@@ -1021,7 +1017,9 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
         MOV  (PC)+,R4; Channel\cN\()_GeneratedCurrentPitch: .word 0
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-    .error
+        MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
+        # Adds the arpeggio value.
+        ADD  (PC)+,R3; Channel\cN\()_GeneratedCurrentArpNote: .word 0
   .else # PLY_AKS_UseEffect_Arpeggio
         # Not automodified, stays this way.
         MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
