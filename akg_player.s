@@ -222,8 +222,8 @@
                                          # Don't touch or you're dead.
 
 # Initializes the player.
-# IN:    R5 = music address.
-#        R0 = subsong index (>=0).
+# IN:   R5 = music address.
+#       R0 = subsong index (>=0).
 PLY_AKG_Init: #--------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC
         ADD  $4,R5 # Skip the tag
@@ -895,22 +895,23 @@ Channel\cN\()_PitchTrackIntegerAdcOrSbc:
         MOV  R5,@$Channel\cN\()_Pitch
 
         # This must be placed at the any location to allow reaching
-        # the variables via IX/IY.
+        # the variables via R2/R3
 Channel\cN\()_SoundStream_RelativeModifierAddress:
 
     .ifdef PLY_CFG_UseEffect_PitchGlide # CONFIG SPECIFIC #------------------{{{
-       .error
+        # playerAkg/sources/PlayerAkg.asm:1360
         # Glide?
         # 0 = no glide. 1 = glide/pitch up. 2 = glide/pitch down.
         MOV  (PC)+,R0; Channel\cN\()_GlideDirection: .word 0
         # Is there a Glide?
         BZE  Channel\cN\()_Glide_End
 
-        MOV  R5,@$Channel\cN\()_Glide_SaveHL
+        MOV  R5,R4
 
         MOV  @$Channel\cN\()_TrackNote, R1
         ASL  R1
-        MOV  PeriodTable(R1),R5
+        ADD  PeriodTable(R1),R4
+        # R4 is now the current period (track pitch + note period).
 
         # Period to reach (note given by the user, converted to period).
         MOV  (PC)+,R1; Channel\cN\()_GlideToReach: .word 0
@@ -919,36 +920,37 @@ Channel\cN\()_SoundStream_RelativeModifierAddress:
         # Depends on the direction.
         RORB R0
         BCC  Channel\cN\()_GlideDownCheck
+
         # Glide up. Check.
         # The glide period should be lower than the current pitch.
-        SUB  R1,R5
+        SUB  R1,R4
         # If not reached yet, continues the pitch.
-        BCC  Channel\cN\()_Glide_BeforeEnd
+        BCC  Channel\cN\()_Glide_End
         BR   Channel\cN\()_GlideOver
 
 Channel\cN\()_GlideDownCheck:
         # The glide period should be higher than the current pitch.
-        SUB  R1,R5
+        SUB  R1,R4
         # If not reached yet, continues the pitch.
-        BCS  Channel\cN\()_Glide_BeforeEnd
+        BCS  Channel\cN\()_Glide_End
+
 Channel\cN\()_GlideOver:
         # The glide is over. However, it may be over, so we can't simply use
         # the current pitch period. We have to set the exact needed value.
+        MOV  R1,R5
         MOV  @$Channel\cN\()_TrackNote, R1
         ASL  R1
         SUB  PeriodTable(R1),R5
 
         MOV  R5,Channel\cN\()_Pitch
         MOV  $OPCODE_CLC,@$Channel\cN\()_IsPitch
-        # Skips the R5 restoration, the one we have is fine and will give us
-        # the right pitch to use.
+
         BR   Channel\cN\()_Glide_End
         #--------------------------------------------------------------------}}}
-    .else # .ifdef PLY_CFG_UseEffect_PitchGlide
+    .else # PLY_CFG_UseEffect_PitchGlide not defined
         # Skips the variables below, if there are present.
       .ifdef PLY_AKS_UseEffect_ArpeggioTableOrPitchTable # CONFIG SPECIFIC
-        .error
-        BR   Channel_AfterArpeggioPitchVariables
+        BR   Channel\cN\()_AfterArpeggioPitchVariables
       .endif # PLY_AKS_UseEffect_ArpeggioTableOrPitchTable
     .endif # PLY_CFG_UseEffect_PitchGlide # playerAkg/sources/PlayerAkg.asm:1429
 
@@ -971,9 +973,6 @@ Channel\cN\()_PitchTableBase: .word 0
 Channel\cN\()_AfterArpeggioPitchVariables:
 
     .ifdef PLY_CFG_UseEffect_PitchGlide # CONFIG SPECIFIC #------------------{{{
-Channel\cN\()_Glide_BeforeEnd:
-        # Restores HL.
-        MOV  (PC)+,R5; Channel\cN\()_Glide_SaveHL: .word 0
 Channel\cN\()_Glide_End:
     .endif # PLY_CFG_UseEffect_PitchGlide #----------------------------------}}}
 
@@ -985,7 +984,6 @@ Channel\cN\()_Pitch_End:
         MOV  R5,@$Channel\cN\()_GeneratedCurrentPitch
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-     .error
         MOV  R2,@$Channel\cN\()_GeneratedCurrentArpNote
   .endif # PLY_AKS_UseEffect_Arpeggio
 
@@ -1736,7 +1734,6 @@ EffectTable:
    .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
 
    .ifdef PLY_CFG_UseEffect_PitchGlide           # CONFIG SPECIFIC
-     .error
        .word Effect_GlideWithNote               # 12
        .word Effect_GlideSpeed                  # 13
    .else
@@ -1914,28 +1911,28 @@ Effect_PitchTableStop:
   .endif # PLY_CFG_UseEffect_PitchTable #------------------------------------}}}
 
         # Pitch track effect. Followed by the pitch, as a word.
-  .ifdef PLY_CFG_UseEffect_PitchDown # CONFIG SPECIFIC
-Effect_PitchDown: # playerAkg/sources/PlayerAkg.asm:3251 #-------------------{{{
+  .ifdef PLY_CFG_UseEffect_PitchDown # CONFIG SPECIFIC #---------------------{{{
+Effect_PitchDown: # playerAkg/sources/PlayerAkg.asm:3251
         # Changes the sign of the operations.
-        .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_ADD_IMMEDIATE_R5, offset(R3)
+       .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADD_IMMEDIATE_R5, offset(R3)
 
-        .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_ADD_IMMEDIATE_IMMEDIATE, offset(R3)
+       .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADD_IMMEDIATE_IMMEDIATE, offset(R3)
 
-        .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_ADC_R5, offset(R3)
+       .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADC_R5, offset(R3)
   .endif # PLY_CFG_UseEffect_PitchDown #-------------------------------------}}}
 
-  .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDown # CONFIG SPECIFIC #-----------------{{{
         # The Pitch up will jump here.
-Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259 #----------{{{
+Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259
         # Authorizes the pitch, disabled the glide.
-        .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
+       .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
         MOV  $OPCODE_SEC, offset(R3)
 
     .ifdef PLY_CFG_UseEffect_PitchGlide # CONFIG SPECIFIC
-        .set offset, Channel1_GlideDirection - Channel1_SoundStream_RelativeModifierAddress
+       .set offset, Channel1_GlideDirection - Channel1_SoundStream_RelativeModifierAddress
         CLR  offset(R3)
     .endif # PLY_CFG_UseEffect_PitchGlide
 
@@ -1954,33 +1951,117 @@ Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259 #----------{{{
         JMP  Channel_RE_EffectReturn
   .endif # PLY_AKS_UseEffect_PitchUpOrDown #---------------------------------}}}
 
-  .ifdef PLY_CFG_UseEffect_PitchUp # CONFIG SPECIFIC
-Effect_PitchUp: # playerAkg/sources/PlayerAkg.asm:3276 #---------------------{{{
+  .ifdef PLY_CFG_UseEffect_PitchUp # CONFIG SPECIFIC #-----------------------{{{
+Effect_PitchUp: # playerAkg/sources/PlayerAkg.asm:3276
         # Changes the sign of the operations.
-        .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_SUB_IMMEDIATE_R5, offset(R3)
+       .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SUB_IMMEDIATE_R5, offset(R3)
 
-        .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_SUB_IMMEDIATE_IMMEDIATE, offset(R3)
+       .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SUB_IMMEDIATE_IMMEDIATE, offset(R3)
 
-        .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
-        MOV $OPCODE_SBC_R5, offset(R3)
+       .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SBC_R5, offset(R3)
 
         BR   Effect_PitchUpDown_Common
   .endif # PLY_CFG_UseEffect_PitcUp #----------------------------------------}}}
 
-  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC #----------{{{
         # Pitch track stop. Used by Pitch up/down/glide.
-Effect_PitchStop: # playerAkg/sources/PlayerAkg.asm:3287 #-------------------{{{
+Effect_PitchStop: # playerAkg/sources/PlayerAkg.asm:3287
         # Only stops the pitch, don't reset the value.
         # No need to reset the Glide either.
-        .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
+       .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
         MOV  $OPCODE_CLC, offset(R3)
 
         JMP  Channel_RE_EffectReturn
   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide #--------------------------}}}
 
+  .ifdef PLY_CFG_UseEffect_PitchGlide # CONFIG SPECIFIC #--------------------{{{
+        # Glide, with a note.
+Effect_GlideWithNote: # playerAkg/sources/PlayerAkg.asm:3295
+        # Reads the note to reach.
+        MOVB (R4)+,R1
+        # Finds the period related to the note, stores it.
+        ASL  R1 # The note is 7 bits only, so it fits.
+        MOV  PeriodTable(R1),R1 # R1 = period to reach.
+
+       .set offset, Channel1_GlideToReach - Channel1_SoundStream_RelativeModifierAddress
+        MOV  R1, offset(R3)
+
+        # Calculates the period of the current note to calculate the difference.
+       .set offset, Channel1_TrackNote - Channel1_PlayInstrument_RelativeModifierAddress
+        MOV  offset(R2),R0
+        ASL  R0
+        MOV  PeriodTable(R0),R0 # R0 = current period.
+
+        # Adds the current Track Pitch to have the current period, else
+        # the direction may be biased.
+       .set offset, Channel1_Pitch - Channel1_SoundStream_RelativeModifierAddress
+        ADD  offset(R3),R0
+
+        # What is the difference?
+        CMP  R0,R1
+        BLO  Effect_Glide_PitchDown
+
+        # Pitch up.
+       .set offset, Channel1_GlideDirection - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $1, offset(R3)
+
+       .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SUB_IMMEDIATE_R5, offset(R3)
+
+       .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SUB_IMMEDIATE_IMMEDIATE, offset(R3)
+
+       .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SBC_R5, offset(R3)
+
+        # Reads the Speed, which is actually the "pitch".
+Effect_Glide_ReadSpeed:
+Effect_GlideSpeed: # This is an effect.
+        CLR  R0
+        BISB (R4)+,R0
+        # the value will be added/subtracted to/from PitchTrackDecimalCounter
+        # PitchTrackDecimalCounter is 8-bit in original Z80 source code
+        # so we shift the value left by 8-bits to immitate 8-bit counter
+        SWAB R0
+       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
+        MOVB R0, offset(R3) # Reads the Pitch.
+
+       .set offset, Channel1_PitchTrack - Channel1_SoundStream_RelativeModifierAddress
+        MOVB (R4)+, offset(R3)
+
+        # Enables the pitch, as the Glide relies on it.
+        # The Glide is enabled below, via its direction.
+       .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SEC, offset(R3)
+
+        JMP  Channel_RE_EffectReturn
+
+Effect_Glide_PitchDown:
+        # Pitch down.
+       .set offset, Channel1_GlideDirection - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $2, offset(R3)
+
+       .set offset, Channel1_PitchTrackAddOrSub - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADD_IMMEDIATE_R5, offset(R3)
+
+       .set offset, Channel1_PitchTrackDecimalInstr - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADD_IMMEDIATE_IMMEDIATE, offset(R3)
+
+       .set offset, Channel1_PitchTrackIntegerAdcOrSbc - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_ADC_R5, offset(R3)
+
+        JMP  Effect_Glide_ReadSpeed
+  .endif # PLY_CFG_UseEffect_PitchGlide #------------------------------------}}}
+
 .endif # PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:3434
+
+  .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC #
+Event: .word 0 # Possible event sent from the music for the caller to interpret.
+  .endif # PLY_CFG_UseEventTracks #
+
 
 # The period table for each note (from 0 to 127 included).
 PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
