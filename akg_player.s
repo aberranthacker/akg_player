@@ -721,27 +721,25 @@ SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
   .equiv Channel\cN\()_InvertedVolumeInteger, Channel\cN\()_InvertedVolumeIntegerAndDecimal + 1
 
   .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC #---------------------------{{{
-    .error "724"
-        # Is there a Volume Slide ? Automodified. SCF if yes, OR A if not.
+       .error "724"
+        # Is there a Volume Slide ?
+        # Automodified. SEC if yes, CLC if not.
       Channel\cN\()_IsVolumeSlide:
         CLC
-
         BCC  Channel\cN\()_VolumeSlide_End
 
-        # May be negative.
-        MOV  (PC)+,R3; Channel\cN\()_VolumeSlideValue: .word 0
-
-        ADD  R3,R5
-        BMI  Channel\cN\()_VolumeNotOverflow
-
-        CLR  R5 # No need to set L to 0... Shouldn't make any hearable difference.
+        ADD  (PC)+,R5
+        Channel\cN\()_VolumeSlideValue: .word 0 # May be negative.
+        BVC  Channel\cN\()_VolumeNotOverflow
+        # Went below 0
+        CLR  R5
         BR   Channel\cN\()_VolumeSetAgain
 
 Channel\cN\()_VolumeNotOverflow:
         # Higher than 15?
         SWAB R5
-        CMPB R5,$16
-        BLO  Channel\cN\()_VolumeSetAgain
+        CMPB R5,$15
+        BLOS Channel\cN\()_VolumeSetAgain
         CLRB R5
         BISB $15,R5
 Channel\cN\()_VolumeSetAgain:
@@ -1307,7 +1305,7 @@ Channel_RE_EffectReturn:
 
         # No more effects.
 
-        JMP  @(PC)+ # PLY_AKG_Channel1/2/3_BeforeEnd_StoreCellPointer
+        JMP  @(PC)+ # Channel1/2/3_BeforeEnd_StoreCellPointer
         Channel_ReadEffects_EndJump: .word 0
 
 
@@ -1347,7 +1345,7 @@ Channel_ReadEffects_RelativeAddress:
 
 .equiv BitForSound, 0b00000100
 .equiv BitForNoise, 0b00100000
-  .ifdef PLY_AKG_UseRetrig_StoH_HtoS_SandH
+  .ifdef UseRetrig_StoH_HtoS_SandH
 R_Retrig: .word 0
   .endif
   .ifdef PLY_CFG_HardOnly_Retrig
@@ -1362,13 +1360,15 @@ ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
         # First bit of the type.
         RORB R0
        .jmp CS, S_Or_H_Or_SaH_Or_EndWithLoop
+
         # No Soft No Hard, or Soft To Hard, or Hard To Soft, or End without loop.
         RORB R0
         BCS  StH_Or_EndWithoutLoop
+
         # No Soft No Hard, or Hard to Soft.
         RORB R0
   .ifdef PLY_CFG_HardToSoft # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2408
-    .error
+        BCC  HardToSoft
   .endif # PLY_CFG_HardToSoft
 
        /* * * * * * * * * * * *
@@ -1624,7 +1624,19 @@ RETURN
   .endif # UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
 
   .ifdef UseInstrumentForcedPeriods # CONFIG SPECIFIC
-    .error
+S_Or_H_ForcedPeriod: # playerAkg/sources/PlayerAkg.asm:2893
+        # Reads the period. A bit slow, but doesn't happen often.
+        CLR  R4
+        BISB (R5)+,R4
+        SWAB R4
+        BISB (R5)+,R4
+        SWAB R4
+
+        # The pitch and arpeggios have been skipped, since the period is forced,
+        # the bits must be compensated.
+        ROLB R1
+        ROLB R1
+RETURN
   .endif # UseInstrumentForcedPeriods
 
         #------------------------------------------------------------------
@@ -1642,9 +1654,9 @@ StoH_HToS_SandH_Common:
 
         # Retrig?
         RORB R0
-    .ifdef PLY_AKG_UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
+    .ifdef UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
       .error
-    .endif # PLY_AKG_UseRetrig_StoH_HtoS_SandH
+    .endif # UseRetrig_StoH_HtoS_SandH
 
         # Calculates the hardware envelope.
         # The value given is from 8-15, but encoded as 0-7.
@@ -1654,9 +1666,9 @@ StoH_HToS_SandH_Common:
 
         # Noise? If yes, reads the next byte.
         ROLB R1 # NOTE: is this correct register???
-    .ifdef PLY_AKG_UseNoise_StoH_HtoS_SandH # CONFIG SPECIFIC
+    .ifdef UseNoise_StoH_HtoS_SandH # CONFIG SPECIFIC
       .error
-    .endif # PLY_AKG_UseNoise_StoH_HtoS_SandH
+    .endif # UseNoise_StoH_HtoS_SandH
 
         # Read the next data byte.
         MOVB (R5)+,R0
@@ -1700,6 +1712,7 @@ EffectTable:
        .word 0
        .word 0
    .endif # PLY_AKS_UseEffect_Arpeggio
+
    .ifdef PLY_CFG_UseEffect_PitchTable           # CONFIG SPECIFIC
        .word Effect_PitchTable                  # 5
        .word Effect_PitchTableStop              # 6
@@ -1707,8 +1720,9 @@ EffectTable:
        .word 0
        .word 0
    .endif # PLY_CFG_UseEffect_PitchTable
+
    .ifdef UseEffect_VolumeSlide                  # CONFIG SPECIFIC
-     .error
+      .error
        .word Effect_VolumeSlide                 # 7
        .word Effect_VolumeSlideStop             # 8
    .else
@@ -1721,6 +1735,7 @@ EffectTable:
    .else
        .word 0
    .endif # PLY_CFG_UseEffect_PitchUp
+
    .ifdef PLY_CFG_UseEffect_PitchDown            # CONFIG SPECIFIC
        .word Effect_PitchDown                   # 10
    .else
@@ -1819,10 +1834,10 @@ Effect_ResetVolume_AfterReading:
         MOV  R0, offset(R3)
     .endif # PLY_AKS_UseEffect_Arpeggio
 
-    .ifdef PLY_AKG_UseEffect_VolumeSlide # CONFIG SPECIFIC
+    .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC
        .set offset, Channel1_IsVolumeSlide - Channel1_SoundStream_RelativeModifierAddress
         MOV  R0, offset(R3)
-    .endif # PLY_AKG_UseEffect_VolumeSlide
+    .endif # UseEffect_VolumeSlide
 
         JMP  Channel_RE_EffectReturn
   .endif # PLY_CFG_UseEffect_Reset #-----------------------------------------}}}
@@ -1910,6 +1925,28 @@ Effect_PitchTableStop:
         JMP  Channel_RE_EffectReturn
   .endif # PLY_CFG_UseEffect_PitchTable #------------------------------------}}}
 
+  .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC
+        # Volume slide effect. Followed by the volume, as a word.
+Effect_VolumeSlide:
+       .set offset, Channel1_VolumeSlideValue - Channel1_SoundStream_RelativeModifierAddress
+        MOVB (R4)+, offset(R3)
+       .set offset, Channel1_VolumeSlideValue + 1 - Channel1_SoundStream_RelativeModifierAddress
+        MOVB (R4)+, offset(R3)
+
+       .set offset, Channel1_IsVolumeSlide - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_SEC, offset(R3)
+
+        JMP  Channel_RE_EffectReturn
+
+        # Volume slide stop effect.
+Effect_VolumeSlideStop:
+        # Only stops the slide, don't reset the value.
+       .set offset, Channel1_IsVolumeSlide - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_CLC, offset(R3)
+
+        JMP  Channel_RE_EffectReturn
+  .endif # UseEffect_VolumeSlide #-----------------------------------}}}
+
         # Pitch track effect. Followed by the pitch, as a word.
   .ifdef PLY_CFG_UseEffect_PitchDown # CONFIG SPECIFIC #---------------------{{{
 Effect_PitchDown: # playerAkg/sources/PlayerAkg.asm:3251
@@ -1942,10 +1979,10 @@ Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259
         # PitchTrackDecimalCounter is 8-bit in original Z80 source code
         # so we shift the value left by 8-bits to immitate 8-bit counter
         SWAB R0
-        .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
+       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
         MOVB R0, offset(R3) # Reads the Pitch.
 
-        .set offset, Channel1_PitchTrack - Channel1_SoundStream_RelativeModifierAddress
+       .set offset, Channel1_PitchTrack - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+, offset(R3)
 
         JMP  Channel_RE_EffectReturn
@@ -2055,6 +2092,77 @@ Effect_Glide_PitchDown:
 
         JMP  Effect_Glide_ReadSpeed
   .endif # PLY_CFG_UseEffect_PitchGlide #------------------------------------}}}
+
+
+  .ifdef UseEffect_Legato # CONFIG SPECIFIC #--------------------------------{{{
+    .error
+        # Legato. Followed by the note to play.
+Effect_Legato: # playerAkg/sources/PlayerAkg.asm:3371
+        # Reads and sets the new note to play.
+       .set offset, Channel1_TrackNote - Channel1_PlayInstrument_RelativeModifierAddress
+        MOVB (R4)+, offset(R2)
+
+        # Stops the Pitch effect, resets the Pitch.
+    .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide    ;CONFIG SPECIFIC
+      .error
+       .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
+        MOV  $OPCODE_CLC, offset(R3)
+
+       .set offset, Channel1_Pitch - Channel1_SoundStream_RelativeModifierAddress
+        CLR  offset(R3)
+    .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+
+        JMP  Channel_RE_EffectReturn
+  .endif # UseEffect_Legato #------------------------------------------------}}}
+
+  .ifdef UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC #------------------{{{
+    .error
+        # Forces the Instrument Speed. Followed by the speed.
+Effect_ForceInstrumentSpeed: # playerAkg/sources/PlayerAkg.asm:3392
+        # Reads and sets the new speed.
+       .set offset, Channel1_InstrumentSpeed - Channel1_PlayInstrument_RelativeModifierAddress
+        MOVB (R4)+, offset(R2)
+
+        JMP  Channel_RE_EffectReturn
+  .endif # UseEffect_ForceInstrumentSpeed #----------------------------------}}}
+
+  .ifdef UseEffect_ForceArpeggioSpeed # CONFIG SPECIFIC #--------------------{{{
+    .error
+        # Forces the Arpeggio Speed. Followed by the speed.
+Effect_ForceArpeggioSpeed: # playerAkg/sources/PlayerAkg.asm:3404
+    .ifdef UseEffect_Arpeggio # CONFIG SPECIFIC
+      .error
+        # Is IT possible to use a Force Arpeggio even if there is no Arpeggio.
+        # Unlikely, but...
+        # Reads and sets the new speed.
+       .set offset, Channel1_ArpeggioTableSpeed - Channel1_SoundStream_RelativeModifierAddress
+        MOVB (R4)+,offset(R3)
+    .else
+      .error
+        INC  R4
+    .endif # UseEffect_Arpeggio
+
+        JMP  Channel_RE_EffectReturn
+  .endif # UseEffect_ForceArpeggioSpeed #------------------------------------}}}
+
+  .ifdef UseEffect_ForcePitchTableSpeed # CONFIG SPECIFIC #------------------{{{
+    .error
+# Forces the Pitch Speed. Followed by the speed.
+Effect_ForcePitchSpeed: # playerAkg/sources/PlayerAkg.asm:3420
+    .ifdef UseEffect_PitchTable # CONFIG SPECIFIC
+      .error
+        # Is IT possible to use a Force Arpeggio even if there is no Arpeggio.
+        # Unlikely, but...
+        # Reads and sets the new speed.
+       .set offset, Channel1_PitchTableSpeed - Channel1_SoundStream_RelativeModifierAddress
+        MOVB (R4)+,offset(R3)
+    .else
+      .error
+        INC  R4
+    .endif # PLY_CFG_UseEffect_PitchTable
+
+        JMP  Channel_RE_EffectReturn
+  .endif # PLY_CFG_UseEffect_ForcePitchTableSpeed #--------------------------}}}
 
 .endif # PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:3434
 
