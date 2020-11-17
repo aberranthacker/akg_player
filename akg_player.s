@@ -1,3 +1,4 @@
+  SkipPSGSend = 1
 
 /*******************************************************************************
  * +                                                                         + *
@@ -25,7 +26,6 @@
      .global PLY_AKG_Stop
   .endif
 
-       #SkipPSGSend = 1
        .include "akg_player_config.s"
 
 # Agglomerates some flags, because they are treated the same way by this player.
@@ -692,11 +692,9 @@ Channel\cN\()_ReadCellEnd:
 .endm # ReadTrack # playerAkg/sources/PlayerAkg.asm:1081 #-------------------}}}
 
         # Generates the code for each channel, from the macro above.
-        .list
         ReadTrack 1
         ReadTrack 2
         ReadTrack 3
-        .nolist
 
 
 
@@ -884,7 +882,7 @@ Channel\cN\()_PitchTrackDecimalInstr:
         Channel\cN\()_PitchTrackDecimalValue: .word 0
         # the label is present in original code
         # but here it acts as a commentary
-        # the only result we use down below is carry flag
+        # the only result we use down below is the carry flag
         Channel\cN\()_PitchTrackDecimalCounter: .word 0
 
 Channel\cN\()_PitchTrackIntegerAdcOrSbc:
@@ -907,7 +905,7 @@ Channel\cN\()_SoundStream_RelativeModifierAddress:
         MOV  R5,R4
 
         MOV  @$Channel\cN\()_TrackNote, R1
-        ASL  R1
+        ASLB R1
         ADD  PeriodTable(R1),R4
         # R4 is now the current period (track pitch + note period).
 
@@ -937,7 +935,7 @@ Channel\cN\()_GlideOver:
         # the current pitch period. We have to set the exact needed value.
         MOV  R1,R5
         MOV  @$Channel\cN\()_TrackNote, R1
-        ASL  R1
+        ASLB R1
         SUB  PeriodTable(R1),R5
 
         MOV  R5,Channel\cN\()_Pitch
@@ -1016,6 +1014,8 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
         MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
         # Adds the arpeggio value.
         ADD  (PC)+,R3; Channel\cN\()_GeneratedCurrentArpNote: .word 0
+        # the most significat byte has to be cleared if result is negative
+        BIC  $0xFF00,R3
   .else # PLY_AKS_UseEffect_Arpeggio
         # Not automodified, stays this way.
         MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
@@ -1091,7 +1091,9 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
         # Generates the code for all channels using the macro above.
         PlayInstrument 1
         PlayInstrument 2
+       .list
         PlayInstrument 3
+       .nolist
 
 # Plays the sound effects, if desired.
 #-------------------------------------------
@@ -1152,8 +1154,12 @@ SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
 
         INC  R3
         MOV  R3,(R4)    # Register 7: Enable, inverted
+  .ifdef SkipPSGSend
+        MOVB @$PSGReg7,(R4)
+  .else
         MOVB (PC)+,(R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
         PSGReg7: .word 0
+  .endif
 
         INC  R3
         MOV  R3,(R4)    # Register 8: Channel A Amplitude
@@ -1226,6 +1232,10 @@ end_of_the_send:
                 PSGReg10: .byte 0
         PSGHardwarePeriod_Instr: .word 0
         PSGReg13_Instr: .word 0
+  .ifdef SkipPSGSend
+        PSGReg7: .word 0
+        FrameNumber: .word -1
+  .endif
 
 
 
@@ -1419,23 +1429,20 @@ SoftOnly_HardOnly_TestSimple_Common: # CONFIG SPECIFIC # playerAkg/sources/Playe
         BCC  S_NotSimple
         # Simple.
         # WARNING, the following code must NOT modify the Carry!
-        MOV  $0,@$R_Tmp # This will force the noise to 0.
+        MOV  $0,-(SP) # This will force the noise to 0.
         BR   S_AfterSimpleTest
 
-    .ifndef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC #------------------{{{
-        R_Tmp: .word 0
-    .endif #-----------------------------------------------------------------}}}
 S_NotSimple: # playerAkg/sources/PlayerAkg.asm:2471
         # Not simple. Reads and keeps the next byte, containing the noise.
         # WARNING, the following code must NOT modify the Carry!
         MOVB (R5)+,R1
-        MOV  R1,@$R_Tmp
+        MOV  R1,-(SP)
 S_AfterSimpleTest:
 
         CALL S_Or_H_CheckIfSimpleFirst_CalculatePeriod
 
     .ifdef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC #-------------------{{{
-        MOV  (PC)+,R0; R_Tmp: .word 0 # Noise?
+        MOV  (SP)+,R0 # Noise?
         BIC  $0xFFE0,R0
         BZE  1237$ # if noise not present, sound present, we can stop here,
                    # R7 is fine.
@@ -1570,7 +1577,7 @@ S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         # The software period must still be calculated.
         # Calculates the note period from the note of the track.
         # This is the same code as below.
-        ASL  R3
+        ASLB R3
         MOV  PeriodTable(R3),R3
         ADD  R4,R3
         # Important: the bits must be shifted so that R1 is in the same state
@@ -1596,9 +1603,9 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
     .ifdef UseInstrumentArpeggios # CONFIG SPECIFIC
         BCC  S_Or_H_AfterArpeggio
         MOVB (R5)+,R0 # can be negative, sign extension is welcome
-        # playerAkg/sources/PlayerAkg.asm:2835
-        # TODO: check if it's ok to add word instead of byte (overflow wont happen)
         ADD  R0,R3 # We don't care about overflow, no time for that.
+        # the most significant byte has to be cleared if the result is negative
+        BIC  $0xFF00,R3
 S_Or_H_AfterArpeggio:
     .endif # UseInstrumentArpeggios
 
@@ -1616,7 +1623,9 @@ S_Or_H_AfterArpeggio:
 S_Or_H_AfterPitch:
     .endif # UseInstrumentPitchs --------------------------------------------}}}
         # Calculates the note period from the note of the track.
-        ASL  R3
+        # note + arpeggio may be over 127 (but not over 127+127)
+        # and we want the same behavior as on 8-bit CPU
+        ASLB R3
         MOV  PeriodTable(R3),R3
         ADD  R4,R3
 
@@ -1756,9 +1765,7 @@ EffectTable:
        .word 0
    .endif # PLY_CFG_UseEffect_PitchGlide
 
-
    .ifdef PLY_CFG_UseEffect_Legato               # CONFIG SPECIFIC
-     .error
        .word Effect_Legato                      # 14
    .else
        .word 0
@@ -1945,7 +1952,7 @@ Effect_VolumeSlideStop:
         MOV  $OPCODE_CLC, offset(R3)
 
         JMP  Channel_RE_EffectReturn
-  .endif # UseEffect_VolumeSlide #-----------------------------------}}}
+  .endif # UseEffect_VolumeSlide #-------------------------------------------}}}
 
         # Pitch track effect. Followed by the pitch, as a word.
   .ifdef PLY_CFG_UseEffect_PitchDown # CONFIG SPECIFIC #---------------------{{{
@@ -1973,14 +1980,12 @@ Effect_PitchUpDown_Common: # playerAkg/sources/PlayerAkg.asm:3259
         CLR  offset(R3)
     .endif # PLY_CFG_UseEffect_PitchGlide
 
-        CLR  R0
-        BISB (R4)+,R0
+        # Reads the Pitch.
+       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
         # the value will be added/subtracted to/from PitchTrackDecimalCounter
         # PitchTrackDecimalCounter is 8-bit in original Z80 source code
-        # so we shift the value left by 8-bits to immitate 8-bit counter
-        SWAB R0
-       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
-        MOVB R0, offset(R3) # Reads the Pitch.
+        # so we write the value into MSB to immitate 8-bit counter
+        MOVB (R4)+, offset+1(R3)
 
        .set offset, Channel1_PitchTrack - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+, offset(R3)
@@ -2020,7 +2025,7 @@ Effect_GlideWithNote: # playerAkg/sources/PlayerAkg.asm:3295
         # Reads the note to reach.
         MOVB (R4)+,R1
         # Finds the period related to the note, stores it.
-        ASL  R1 # The note is 7 bits only, so it fits.
+        ASLB R1 # The note is 7 bits only, so it fits.
         MOV  PeriodTable(R1),R1 # R1 = period to reach.
 
        .set offset, Channel1_GlideToReach - Channel1_SoundStream_RelativeModifierAddress
@@ -2029,7 +2034,7 @@ Effect_GlideWithNote: # playerAkg/sources/PlayerAkg.asm:3295
         # Calculates the period of the current note to calculate the difference.
        .set offset, Channel1_TrackNote - Channel1_PlayInstrument_RelativeModifierAddress
         MOV  offset(R2),R0
-        ASL  R0
+        ASLB R0
         MOV  PeriodTable(R0),R0 # R0 = current period.
 
         # Adds the current Track Pitch to have the current period, else
@@ -2057,14 +2062,12 @@ Effect_GlideWithNote: # playerAkg/sources/PlayerAkg.asm:3295
         # Reads the Speed, which is actually the "pitch".
 Effect_Glide_ReadSpeed:
 Effect_GlideSpeed: # This is an effect.
-        CLR  R0
-        BISB (R4)+,R0
+        # Reads the Pitch.
+       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
         # the value will be added/subtracted to/from PitchTrackDecimalCounter
         # PitchTrackDecimalCounter is 8-bit in original Z80 source code
-        # so we shift the value left by 8-bits to immitate 8-bit counter
-        SWAB R0
-       .set offset, Channel1_PitchTrackDecimalValue - Channel1_SoundStream_RelativeModifierAddress
-        MOVB R0, offset(R3) # Reads the Pitch.
+        # so we write the value into MSB to immitate 8-bit counter
+        MOVB (R4)+, offset+1(R3)
 
        .set offset, Channel1_PitchTrack - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+, offset(R3)
@@ -2093,9 +2096,7 @@ Effect_Glide_PitchDown:
         JMP  Effect_Glide_ReadSpeed
   .endif # PLY_CFG_UseEffect_PitchGlide #------------------------------------}}}
 
-
   .ifdef UseEffect_Legato # CONFIG SPECIFIC #--------------------------------{{{
-    .error
         # Legato. Followed by the note to play.
 Effect_Legato: # playerAkg/sources/PlayerAkg.asm:3371
         # Reads and sets the new note to play.
@@ -2103,8 +2104,7 @@ Effect_Legato: # playerAkg/sources/PlayerAkg.asm:3371
         MOVB (R4)+, offset(R2)
 
         # Stops the Pitch effect, resets the Pitch.
-    .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide    ;CONFIG SPECIFIC
-      .error
+    .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC
        .set offset, Channel1_IsPitch - Channel1_SoundStream_RelativeModifierAddress
         MOV  $OPCODE_CLC, offset(R3)
 
@@ -2174,6 +2174,7 @@ Event: .word 0 # Possible event sent from the music for the caller to interpret.
 # The period table for each note (from 0 to 127 included).
 PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
     # base_freq = 1789772.5 Hz
+    #       C     C#    D     D#    E     F     F#    G     G#    A     A#    B
     .word 6841, 6457, 6095, 5753, 5430, 5125, 4837, 4566, 4310, 4068, 3839, 3624 # Octave 0
     .word 3420, 3229, 3047, 2876, 2715, 2562, 2419, 2283, 2155, 2034, 1920, 1812 # Octave 1
     .word 1710, 1614, 1524, 1438, 1357, 1281, 1209, 1141, 1077, 1017,  960,  906 # Octave 2

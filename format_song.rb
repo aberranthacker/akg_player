@@ -1,3 +1,5 @@
+#!/bin/ruby
+
 filename = 'song.akg.s'
 
 src = File.read(filename)
@@ -15,12 +17,14 @@ File.open(filename, 'w') do |dst|
            end
 
 
+    # .word $ + 2
+    line.sub!(/(\s+.word )\$(.+)/, '\1.\2')
     # .word Justaddcream_Pitch1 + 4 * 0 + 1
     line.sub!(/(\.word \w+_Pitch\d+ \+ \d+ \* \d+ \+ )\d+/, '\12')
 
     dst << line
-    dst << "        .even\n" if /DisarkPointerRegionStart/.match?(line)
-    dst << "        .even\n" if /DisarkWordForceReference/.match?(line)
+    dst << "        .even\r\n" if /DisarkPointerRegionStart/.match?(line)
+    dst << "        .even\r\n" if /DisarkWordForceReference/.match?(line)
 
     pitch_flag = true if /^\w+_Pitch\d+:/.match?(line)
   end
