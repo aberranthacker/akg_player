@@ -392,7 +392,7 @@ PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676 #
         MOV  SP,@$SaveSP
 
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-    .error
+        CLR  @$Event
   .endif # PLY_CFG_UseEventTracks
 
         # Decreases the tick counter. If 0 is reached, a new line must be read.
@@ -532,6 +532,34 @@ SpeedTrack_End:
         #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
     .error # playerAkg/sources/PlayerAkg.asm:828
+        MOV  (PC)+,R0 # Lines to wait?
+        EventTrack_WaitCounter: .word 0
+        SUB  $1,R0
+        BHIS EventTrack_MustWait # Jump if there are still lines to wait.
+        # No more lines to wait. Reads a new data.
+        # It may be an event value or a wait value.
+        MOV  (PC)+,R5
+        EventTrack_PtTrack: .word 0
+        CLR  R0
+        BISB (R5)+,R0
+        ASR  R0 # Bit 0: wait?
+        # Jump if wait: R0 is the wait value.
+        BCS EventTrack_StorePointerAndWaitCounter
+        # Value found. If 0, escape value (rare).
+        BNZ EventTrack_NormalValue
+        # Escape code. Reads the right value.
+        CLR  R0
+        BISB (R5)+,R0
+EventTrack_NormalValue:
+        MOV  R0,@$Event
+
+        CLR  R0 # Next time, a new value is read.
+EventTrack_StorePointerAndWaitCounter:
+        MOV  R5,@$EventTrack_PtTrack
+EventTrack_MustWait:
+        MOV  R0,@$EventTrack_WaitCounter
+EventTrack_End:
+
   .endif # PLY_CFG_UseEventTracks #------------------------------------------}}}
 
 
