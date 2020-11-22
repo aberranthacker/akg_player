@@ -1635,11 +1635,11 @@ RETURN
   .ifdef UseInstrumentForcedPeriods # CONFIG SPECIFIC
 S_Or_H_ForcedPeriod: # playerAkg/sources/PlayerAkg.asm:2893
         # Reads the period. A bit slow, but doesn't happen often.
-        CLR  R4
-        BISB (R5)+,R4
-        SWAB R4
-        BISB (R5)+,R4
-        SWAB R4
+        CLR  R3
+        BISB (R5)+,R3
+        SWAB R3
+        BISB (R5)+,R3
+        SWAB R3
 
         # The pitch and arpeggios have been skipped, since the period is forced,
         # the bits must be compensated.
