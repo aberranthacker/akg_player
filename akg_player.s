@@ -1116,7 +1116,7 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # Plays the sound effects, if desired.
 #-------------------------------------------
   .ifdef MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:1638
-       .error
+       .error "MANAGE_SOUND_EFFECTS"
         # IN : A = R7
         # OUT: A = R7, possibly modified.
         CALL PlaySoundEffectsStream
@@ -1470,9 +1470,36 @@ S_AfterSimpleTest:
         * "Hard to soft". *
         * * * * * * * * * */
   .ifdef PLY_CFG_HardToSoft # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2499
-    .error
+     .error "HardToSoft"
+HardToSoft:
+        CALL StoH_HToS_SandH_Common
         # We have the ratio jump calculated and the primary period too.
         # It must be divided to get the software frequency.
+
+        # The hardware period can be stored.
+        MOV  R3,@$PSGHardwarePeriod_Instr
+
+        # We have the negated ratio calculated and the primary period too.
+        # It must be divided to get the hardware frequency.
+        ASH  R0,R3
+
+        # Any Software pitch shift?
+     .ifdef PLY_CFG_HardToSoft_SoftwarePitch # CONFIG SPECIFIC
+        MOV  R1,R0
+        ROLB R0
+        BCC  SH_NoSoftwarePitchShift
+
+        # Pitch shift. Reads it.
+        CLR  R0
+        BISB (R5)+,R0
+        SWAB R0
+        BISB (R5)+,R0
+        SWAB R0
+        ADD  R0,R3
+SH_NoSoftwarePitchShift:
+     .endif # PLY_CFG_HardToSoft_SoftwarePitch
+
+        RETURN
   .endif # PLY_CFG_HardToSoft
 
 
@@ -1510,7 +1537,7 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         ADC  R4
 
     .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC #--------------{{{
-       .error
+       .error "1545"
         # Gets R1, we need the bit to know if a hardware pitch shift is added.
         MOV  R1,R0
         # Any Hardware pitch shift?
@@ -1542,7 +1569,25 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
   .endif # PLY_CFG_SoftOnly
 
   .ifdef PLY_CFG_SoftAndHard # CONFIG SPECIFIC
-    .error
+    .error "1577"
+       /*------------------*
+        *  Soft and Hard". *
+        *------------------*/
+        # Saves the note and track pitch, because the first pass below will
+        # modify it, we need it for the second pass.
+        MOV  R4,-(SP)
+        MOV  R3,-(SP)
+
+        CALL StoH_HToS_SandH_Common
+        # We have now calculated the hardware frequency. Stores it.
+        MOV  R3,@$PSGHardwarePeriod_Instr
+
+        # Get back the note and track pitch for the second pass.
+        MOV  (SP)+,R3
+        MOV  (SP)+,R4
+        # Now calculate the software frequency.
+        ROLB R1 # Simple sound? Used by the sub-code.
+        JMP  S_Or_H_CheckIfSimpleFirst_CalculatePeriod # That's all!
   .endif # PLY_CFG_SoftAndHard
 
 H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
@@ -1719,7 +1764,8 @@ StoH_HToS_SandH_Common:
         # Retrig?
         RORB R0
     .ifdef UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
-      .error
+      .error "1772"
+        BCC  SHoHS_AfterRetrig
     .endif # UseRetrig_StoH_HtoS_SandH
 
         # Calculates the hardware envelope.
@@ -1731,7 +1777,11 @@ StoH_HToS_SandH_Common:
         # Noise? If yes, reads the next byte.
         ROLB R1 # NOTE: is this correct register???
     .ifdef UseNoise_StoH_HtoS_SandH # CONFIG SPECIFIC
-      .error
+        BCC  SHoHS_AfterNoise
+        # Noise is present.
+        MOVB (R5)+, @$PSGReg6
+        BIC  $BitForNoise, @$PSGReg7 # Noise present.
+SHoHS_AfterNoise:
     .endif # UseNoise_StoH_HtoS_SandH
 
         # Read the next data byte.
