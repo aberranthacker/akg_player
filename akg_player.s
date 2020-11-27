@@ -531,7 +531,7 @@ SpeedTrack_End:
         # Reads the Event Track.
         #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-    .error # playerAkg/sources/PlayerAkg.asm:828
+    .error "534" # playerAkg/sources/PlayerAkg.asm:828
         MOV  (PC)+,R0 # Lines to wait?
         EventTrack_WaitCounter: .word 0
         SUB  $1,R0
@@ -699,8 +699,7 @@ Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
     # If the "force instrument speed" effect is used,
     # the instrument speed must be reset to its original value.
   .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC #----------{{{
-    .error
-        MOV  (PC)+,@(PC)+;
+        MOV  (PC)+,@(PC)+
         Channel\cN\()_InstrumentOriginalSpeed:
        .word 0, Channel\cN\()_InstrumentSpeed
   .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed #--------------------------}}}
@@ -747,7 +746,6 @@ SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
   .equiv Channel\cN\()_InvertedVolumeInteger, Channel\cN\()_InvertedVolumeIntegerAndDecimal + 1
 
   .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC #---------------------------{{{
-       .error "724"
         # Is there a Volume Slide ?
         # Automodified. SEC if yes, CLC if not.
       Channel\cN\()_IsVolumeSlide:
@@ -1759,7 +1757,6 @@ EffectTable:
    .endif # PLY_CFG_UseEffect_PitchTable
 
    .ifdef UseEffect_VolumeSlide                  # CONFIG SPECIFIC
-      .error
        .word Effect_VolumeSlide                 # 7
        .word Effect_VolumeSlideStop             # 8
    .else
@@ -1800,21 +1797,18 @@ EffectTable:
    .endif # PLY_CFG_UseEffect_Legato
 
    .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC
-     .error
        .word Effect_ForceInstrumentSpeed        # 15
    .else
        .word 0
    .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed
 
    .ifdef PLY_CFG_UseEffect_ForceArpeggioSpeed   # CONFIG SPECIFIC
-     .error
        .word Effect_ForceArpeggioSpeed          # 16
    .else
        .word 0
    .endif # PLY_CFG_UseEffect_ForceArpeggioSpeed
 
    .ifdef PLY_CFG_UseEffect_ForcePitchTableSpeed # CONFIG SPECIFIC
-     .error
        .word Effect_ForcePitchSpeed             # 17
    .endif # PLY_CFG_UseEffect_ForcePitchTableSpeed
     # Last effect: no need to use padding with .word
@@ -1960,9 +1954,9 @@ Effect_PitchTableStop:
         JMP  Channel_RE_EffectReturn
   .endif # PLY_CFG_UseEffect_PitchTable #------------------------------------}}}
 
-  .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC
+  .ifdef UseEffect_VolumeSlide # CONFIG SPECIFIC #---------------------------{{{
         # Volume slide effect. Followed by the volume, as a word.
-Effect_VolumeSlide:
+Effect_VolumeSlide: # playerAkg/sources/PlayerAkg.asm:3231
        .set offset, Channel1_VolumeSlideValue - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+, offset(R3)
        .set offset, Channel1_VolumeSlideValue + 1 - Channel1_SoundStream_RelativeModifierAddress
@@ -2124,7 +2118,7 @@ Effect_Glide_PitchDown:
         JMP  Effect_Glide_ReadSpeed
   .endif # PLY_CFG_UseEffect_PitchGlide #------------------------------------}}}
 
-  .ifdef UseEffect_Legato # CONFIG SPECIFIC #--------------------------------{{{
+  .ifdef PLY_CFG_UseEffect_Legato # CONFIG SPECIFIC #--------------------------------{{{
         # Legato. Followed by the note to play.
 Effect_Legato: # playerAkg/sources/PlayerAkg.asm:3371
         # Reads and sets the new note to play.
@@ -2143,8 +2137,7 @@ Effect_Legato: # playerAkg/sources/PlayerAkg.asm:3371
         JMP  Channel_RE_EffectReturn
   .endif # UseEffect_Legato #------------------------------------------------}}}
 
-  .ifdef UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC #------------------{{{
-    .error
+  .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC #----------{{{
         # Forces the Instrument Speed. Followed by the speed.
 Effect_ForceInstrumentSpeed: # playerAkg/sources/PlayerAkg.asm:3392
         # Reads and sets the new speed.
@@ -2152,21 +2145,18 @@ Effect_ForceInstrumentSpeed: # playerAkg/sources/PlayerAkg.asm:3392
         MOVB (R4)+, offset(R2)
 
         JMP  Channel_RE_EffectReturn
-  .endif # UseEffect_ForceInstrumentSpeed #----------------------------------}}}
+  .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed #--------------------------}}}
 
   .ifdef UseEffect_ForceArpeggioSpeed # CONFIG SPECIFIC #--------------------{{{
-    .error
         # Forces the Arpeggio Speed. Followed by the speed.
 Effect_ForceArpeggioSpeed: # playerAkg/sources/PlayerAkg.asm:3404
     .ifdef UseEffect_Arpeggio # CONFIG SPECIFIC
-      .error
         # Is IT possible to use a Force Arpeggio even if there is no Arpeggio.
         # Unlikely, but...
         # Reads and sets the new speed.
        .set offset, Channel1_ArpeggioTableSpeed - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+,offset(R3)
     .else
-      .error
         INC  R4
     .endif # UseEffect_Arpeggio
 
@@ -2174,18 +2164,16 @@ Effect_ForceArpeggioSpeed: # playerAkg/sources/PlayerAkg.asm:3404
   .endif # UseEffect_ForceArpeggioSpeed #------------------------------------}}}
 
   .ifdef UseEffect_ForcePitchTableSpeed # CONFIG SPECIFIC #------------------{{{
-    .error
-# Forces the Pitch Speed. Followed by the speed.
+        # Forces the Pitch Speed.
+        # Followed by the speed.
 Effect_ForcePitchSpeed: # playerAkg/sources/PlayerAkg.asm:3420
     .ifdef UseEffect_PitchTable # CONFIG SPECIFIC
-      .error
         # Is IT possible to use a Force Arpeggio even if there is no Arpeggio.
         # Unlikely, but...
         # Reads and sets the new speed.
        .set offset, Channel1_PitchTableSpeed - Channel1_SoundStream_RelativeModifierAddress
         MOVB (R4)+,offset(R3)
     .else
-      .error
         INC  R4
     .endif # PLY_CFG_UseEffect_PitchTable
 
@@ -2201,6 +2189,7 @@ Event: .word 0 # Possible event sent from the music for the caller to interpret.
 
 # The period table for each note (from 0 to 127 included).
 PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
+    # note that the period value is 12-bit (0-4095)
     # base_freq = 1789772.5 Hz
     #       C     C#    D     D#    E     F     F#    G     G#    A     A#    B
     .word 6841, 6457, 6095, 5753, 5430, 5125, 4837, 4566, 4310, 4068, 3839, 3624 # Octave 0
