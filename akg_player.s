@@ -290,7 +290,7 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         CALL Init_ReadWordsAndFill
 
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:511
-      .error
+        MOV  $0xFF,@$PSGReg13_OldValue
     .endif
   .endif # FULL_INIT_CODE
 
@@ -1050,9 +1050,7 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
         # playerAkg/sources/PlayerAkg.asm:1539
 
   .ifdef PLY_CFG_UseRetrig
-    .error
-        MOV  (PC)+, @(PC)+
-        Channel\cN\()_InstrumentStep:
+        MOV  @$Channel\cN\()_InstrumentStep, @$R_Retrig
        .word 0, R_Retrig
   .endif # PLY_CFG_UseRetrig
 
@@ -1075,14 +1073,8 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # The new and increased Instrument pointer is stored only if its speed
         # has been reached. (>0)
-  .ifdef PLY_CFG_UseRetrig
-    .error
-        MOV  @(PC)+,R0
-        R_Retrig: .word 0
-  .else
         MOV  (PC)+,R0
         Channel\cN\()_InstrumentStep: .word 0
-  .endif # PLY_CFG_UseRetrig
 
         INC  R0
         # playerAkg/sources/PlayerAkg.asm:1577
@@ -1381,12 +1373,6 @@ Channel_ReadEffects_RelativeAddress:
 
 .equiv BitForSound, 0b00000100
 .equiv BitForNoise, 0b00100000
-  .ifdef UseRetrig_StoH_HtoS_SandH
-R_Retrig: .word 0
-  .endif
-  .ifdef PLY_CFG_HardOnly_Retrig
-R_Retrig: .word 0
-  .endif
 
 ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
         MOVB (R5)+,R0 # Gets the first byte of the cell.
@@ -1561,7 +1547,49 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
 
 H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
   .ifdef PLY_CFG_HardOnly # CONFIG SPECIFIC
-    .error
+        # Third bit of the type.
+        # Only used for HardOnly, not in case of EndWithLoop.
+        RORB R0
+    .ifdef PLY_CFG_UseInstrumentLoopTo # CONFIG SPECIFIC
+        # Ok to remove this jump if PLY_CFG_HardOnly variable absent,
+        # it will directly go to the code below.
+        BCS  EndWithLoop
+    .endif
+
+       /* * * * * * * * * * * *
+        *     "Hard only".    *
+        * * * * * * * * * * * */
+
+        MOV  $16,R2 # Sets the hardware volume.
+
+        # Retrig?
+        RORB R0
+    .ifdef PLY_CFG_HardOnly_Retrig # CONFIG SPECIFIC
+        BCC  H_AfterRetrig
+        # Retrig is only set if we are on the first step of the instrument!
+        TST  (PC)+; R_Retrig: .word 0
+        BNZ  H_AfterRetrig
+        MOV  R2,@$Retrig
+H_AfterRetrig:
+    .endif
+
+        # Calculates the hardware envelope.
+        # The value given is from 8-15, but encoded as 0-7.
+        BIC  $0177770,R0
+        ADD  $8,R0
+        MOV  R0,@$PSGReg13_Instr
+
+        # Use the code of Soft Only to calculate the period and the noise.
+        CALL SoftOnly_HardOnly_TestSimple_Common
+
+        # The period is actually an hardware period.
+        # We don't care about the software period, the sound channel is cut.
+        MOV  R4,@$PSGHardwarePeriod_Instr
+
+        # Stops the sound.
+        BIS  $BitForSound,@$PSGReg7
+
+        RETURN
   .endif # PLY_CFG_HardOnly
 
         # ** WARNING! ** Do not put instructions here between
@@ -1571,6 +1599,7 @@ H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
         * End with loop *
         * * * * * * * * */
   .ifdef PLY_CFG_UseInstrumentLoopTo # CONFIG SPECIFIC
+EndWithLoop:
         # Loops to the encoded pointer, and makes another iteration.
         INC  R5      # align on word boundary
         MOV  (R5),R5 # NOTE: may not work on a computer other than UKNC
