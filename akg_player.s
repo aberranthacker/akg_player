@@ -1051,7 +1051,6 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
   .ifdef PLY_CFG_UseRetrig
         MOV  @$Channel\cN\()_InstrumentStep, @$R_Retrig
-       .word 0, R_Retrig
   .endif # PLY_CFG_UseRetrig
 
         # Instrument data to read (past the header).
