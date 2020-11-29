@@ -1628,12 +1628,12 @@ H_AfterRetrig:
 
         # The period is actually an hardware period.
         # We don't care about the software period, the sound channel is cut.
-        MOV  R4,@$PSGHardwarePeriod_Instr
+        MOV  R3,@$PSGHardwarePeriod_Instr
 
         # Stops the sound.
         BIS  $BitForSound,@$PSGReg7
 
-        RETURN
+        RETURN # from ReadInstrumentCell
   .endif # PLY_CFG_HardOnly
 
         # ** WARNING! ** Do not put instructions here between
