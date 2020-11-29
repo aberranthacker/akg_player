@@ -388,9 +388,6 @@ PLY_AKG_Stop:
 #                      Plays one frame of the subsong.                         #
 ################################################################################
 PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676 #
-        MTPS $PR7
-        MOV  SP,@$SaveSP
-
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
         CLR  @$Event
   .endif # PLY_CFG_UseEventTracks
@@ -416,13 +413,13 @@ new_pattern$:
         # Reads the Linker. This is called at the start of the song,
         # or at the end of every position.
 ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
-        MOV  (PC)+,SP; ReadLinker_PtLinker: .word 0
+        MOV  (PC)+,R4; ReadLinker_PtLinker: .word 0
         # Reads the address of each Track.
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
         BNZ  ReadLinker_NoLoop
         # End of the song.
-        MOV  (SP)+,SP # read loop address
-        MOV  (SP)+,R5 # Reads once again the address of Track 1, in the pattern looped to.
+        MOV  (R4)+,R4 # read loop address
+        MOV  (R4)+,R5 # Reads once again the address of Track 1, in the pattern looped to.
 ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         MOV  R5,@$Channel1_PtTrack
         MOV  (SP)+,@$Channel2_PtTrack
@@ -430,7 +427,7 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         # Reads the address of the LinkerBlock.
         MOV  (SP)+,R5
         MOV  SP,@$ReadLinker_PtLinker
-        MOV  R5,SP
+        MOV  R5,R4
 
         # Reads the LinkerBlock. SP = LinkerBlock.
         # Reads the height and transposition1.
@@ -450,13 +447,13 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         # Transpositions not used? We could stop here.
         # BUT the SpecialTracks, if present, must access their data after.
         # So in this case, the transpositions must be skipped.
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
     .endif # PLY_CFG_UseTranspositions
   .endif # UseSpecialTracks #------------------------------------------------}}}
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
         # MOVB (SP)+,dst autoincrements SP by 2 anyway
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
         MOVB R5,R0 # can be negative, sign extension is required
         MOV  R0,@$Channel2_Transposition
         SWAB R5
@@ -468,14 +465,14 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         # Reads the special Tracks addresses.
         # Must be performed even SpeedTracks not used, because EventTracks might
         # be present, the word must be skipped.
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
     # Reads the special Tracks addresses.
     .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
         MOV  R5, @$SpeedTrack_PtTrack
     .endif # PLY_CFG_UseSpeedTracks
 
     .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
         MOV  R5, @$EventTrack_PtTrack
     .endif # PLY_CFG_UseEventTracks
   .endif # UseSpecialTracks #------------------------------------------------}}}
@@ -1017,10 +1014,6 @@ Channel\cN\()_Pitch_End:
 
 
 
-        # The stack must NOT be diverted during the Play Streams!
-        MOV  @$SaveSP,SP # playerAkg/sources/PlayerAkg.asm:1496
-        MTPS $PR0
-
        /* * * * * * * * * * * * * * * * * * * * * * * * * * *
         * Plays the instrument on channel 1, 2, 3.          *
         * The PSG registers related to the channels are set.*
@@ -1108,9 +1101,7 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
         # Generates the code for all channels using the macro above.
         PlayInstrument 1
         PlayInstrument 2
-       .list
         PlayInstrument 3
-       .nolist
 
 # Plays the sound effects, if desired.
 #-------------------------------------------
@@ -1227,9 +1218,6 @@ PSGReg13_End:
   .endif # PLY_CFG_UseHardwareSounds
 
 end_of_the_send:
-
-        # playerAkg/sources/PlayerAkg.asm:2209
-        MOV  (PC)+,SP; SaveSP: .word 0
 
 .list
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
