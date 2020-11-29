@@ -1,5 +1,5 @@
-  SkipPSGSend = 1
 
+# SkipPSGSend = 1
 /*******************************************************************************
  * +                                                                         + *
  *            Arkos Tracker 2 player "generic" player.                         *
@@ -528,7 +528,7 @@ SpeedTrack_End:
         # Reads the Event Track.
         #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-    .error "534" # playerAkg/sources/PlayerAkg.asm:828
+    .error "531" # playerAkg/sources/PlayerAkg.asm:828
         MOV  (PC)+,R0 # Lines to wait?
         EventTrack_WaitCounter: .word 0
         SUB  $1,R0
@@ -1094,7 +1094,9 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
   .endif
 
   .if \cN != 3
-        RORB  @$PSGReg7
+        # Shift Reg7 to the right to let room for the other channels.
+        # MSB is 0, so it's safe to use ASR
+        ASR  @$PSGReg7
   .endif
 .endm # PlayInstrument ------------------------------------------------------}}}
 
@@ -1524,7 +1526,7 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         ADC  R4
 
     .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC #--------------{{{
-       .error "1545"
+       .error "1529"
         # Gets R1, we need the bit to know if a hardware pitch shift is added.
         MOV  R1,R0
         # Any Hardware pitch shift?
@@ -1556,7 +1558,7 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
   .endif # PLY_CFG_SoftOnly
 
   .ifdef PLY_CFG_SoftAndHard # CONFIG SPECIFIC
-    .error "1577"
+    .error "1561"
        /*------------------*
         *  Soft and Hard". *
         *------------------*/
@@ -1751,7 +1753,7 @@ StoH_HToS_SandH_Common:
         # Retrig?
         RORB R0
     .ifdef UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
-      .error "1772"
+      .error "1756"
         BCC  SHoHS_AfterRetrig
     .endif # UseRetrig_StoH_HtoS_SandH
 
