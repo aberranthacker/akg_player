@@ -376,7 +376,6 @@ InitTableOrA_End: #----------------------------------------------------------}}}
         # This code can be removed if you don't intend to stop it!
 PLY_AKG_Stop:
         # Only useful because the SendPSGRegisters restores it at the end.
-        MOV  SP,@$SaveSP
         CLRB @$PSGReg8
         CLR  @$PSGReg9_10_Instr
         MOV  $0b00111111, @$PSGReg7
@@ -422,16 +421,16 @@ ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
         MOV  (R4)+,R5 # Reads once again the address of Track 1, in the pattern looped to.
 ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         MOV  R5,@$Channel1_PtTrack
-        MOV  (SP)+,@$Channel2_PtTrack
-        MOV  (SP)+,@$Channel3_PtTrack
+        MOV  (R4)+,@$Channel2_PtTrack
+        MOV  (R4)+,@$Channel3_PtTrack
         # Reads the address of the LinkerBlock.
-        MOV  (SP)+,R5
-        MOV  SP,@$ReadLinker_PtLinker
+        MOV  (R4)+,R5
+        MOV  R4,@$ReadLinker_PtLinker
         MOV  R5,R4
 
-        # Reads the LinkerBlock. SP = LinkerBlock.
+        # Reads the LinkerBlock. R4 = LinkerBlock.
         # Reads the height and transposition1.
-        MOV  (SP)+,R5
+        MOV  (R4)+,R5
         CLR  R2
         BISB R5,R2 # Height
 
@@ -447,18 +446,16 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
         # Transpositions not used? We could stop here.
         # BUT the SpecialTracks, if present, must access their data after.
         # So in this case, the transpositions must be skipped.
-        MOV  (R4)+,R5
+        INC  R4
+        INC  R4
     .endif # PLY_CFG_UseTranspositions
   .endif # UseSpecialTracks #------------------------------------------------}}}
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
-        # MOVB (SP)+,dst autoincrements SP by 2 anyway
-        MOV  (R4)+,R5
-        MOVB R5,R0 # can be negative, sign extension is required
-        MOV  R0,@$Channel2_Transposition
-        SWAB R5
-        MOVB R5,R0 # can be negative, sign extension is required
-        MOV  R0,@$Channel3_Transposition
+        MOVB (R4)+,R5 # can be negative, sign extension is required
+        MOV  R5,@$Channel2_Transposition
+        MOVB (R4)+,R5 # can be negative, sign extension is required
+        MOV  R5,@$Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC #--------------------------------{{{
@@ -528,7 +525,7 @@ SpeedTrack_End:
         # Reads the Event Track.
         #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-    .error "531" # playerAkg/sources/PlayerAkg.asm:828
+    .error "528" # playerAkg/sources/PlayerAkg.asm:828
         MOV  (PC)+,R0 # Lines to wait?
         EventTrack_WaitCounter: .word 0
         SUB  $1,R0
@@ -1241,7 +1238,6 @@ end_of_the_send:
         PSGReg13_Instr: .word 0
   .ifdef SkipPSGSend
         PSGReg7: .word 0
-        FrameNumber: .word -1
   .endif
 
 
@@ -1340,7 +1336,6 @@ Channel_ReadEffects_RelativeAddress:
 # IN:    R5  = pointer on the Instrument data cell to read.
 #        IX  = can be modified.
 #  R_Retrig = Instrument step (>=0). Useful for retrig.
-#        SP = normal use of the stack, do not pervert it!
 #   PSGReg7 = register 7, as if it was the channel 3 (so, bit 2 and 5 filled only).
 #             By default, the noise is OFF, the sound is ON, so no need to do
 #             anything if these values match.
@@ -1526,7 +1521,7 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
         ADC  R4
 
     .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC #--------------{{{
-       .error "1529"
+       .error "1524"
         # Gets R1, we need the bit to know if a hardware pitch shift is added.
         MOV  R1,R0
         # Any Hardware pitch shift?
@@ -1558,7 +1553,7 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
   .endif # PLY_CFG_SoftOnly
 
   .ifdef PLY_CFG_SoftAndHard # CONFIG SPECIFIC
-    .error "1561"
+    .error "1556"
        /*------------------*
         *  Soft and Hard". *
         *------------------*/
@@ -1753,7 +1748,7 @@ StoH_HToS_SandH_Common:
         # Retrig?
         RORB R0
     .ifdef UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
-      .error "1756"
+      .error "1751"
         BCC  SHoHS_AfterRetrig
     .endif # UseRetrig_StoH_HtoS_SandH
 
@@ -1890,8 +1885,6 @@ EffectTable:
 #       R3 = Address from which the data of the channels (pitch, volume, etc) are modified.
 #       R4 = Points on the data of this effect.
 #       R5 = Must NOT be modified.
-#
-#       SP = Can be modified at will.
 #
 # OUT:  R4 = Points after on the data of this effect.
 # ----------------------------------------------------------------
