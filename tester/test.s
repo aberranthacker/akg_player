@@ -2,8 +2,8 @@
 
                 .TITLE AKG Player Test
 
-                .include "macros.s"
-                .include "hwdefs.s"
+                .include "../macros.s"
+                .include "../hwdefs.s"
 
                 .global PPDONE
 
@@ -24,8 +24,8 @@
                 .byte 0b11111111 #  8
                 .byte 0b11111111 # 16
                 .byte 0b11111111 # 24
-                .byte 0b00000000 # 32
-                .byte 0b00000000 #
+                .byte 0b11111000 # 32
+                .byte 0b00000000 # 40
                 #       76543210
                 .=01000
 
@@ -101,9 +101,10 @@ PPUModuleStart:
         WAIT
         BR  loop$
 
-       .include "akg_player.s"
+       .include "a_harmless_grenade_playerconfig.s"
+       .include "../akg_player.s"
 song_start:
-       .include "song.akg.s"
+       .include "a_harmless_grenade.s"
        .even
 
         MOV  $PPU_PPDONE,@$PBPADR

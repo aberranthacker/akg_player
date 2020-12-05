@@ -9,10 +9,6 @@
  * +                                                                         + *
  *******************************************************************************/
 
-     # Use hooks for external calls? 0 if the Init/Play/Stop methods are
-     # directly called.
-     # Will save a few bytes.
-     .equiv USE_HOOKS, 0
      # 1 to have the "stop sounds" code. Set it to 0 if you never plan on
      # stopping your music.
      .equiv STOP_SOUNDS, 1
@@ -25,8 +21,6 @@
   .if STOP_SOUNDS
      .global PLY_AKG_Stop
   .endif
-
-       .include "akg_player_config.s"
 
 # Agglomerates some flags, because they are treated the same way by this player.
 #----------------------------------------------------------------------------{{{
