@@ -102,6 +102,7 @@ PPUModuleStart:
         BR  loop$
 
        .include "a_harmless_grenade_playerconfig.s"
+      # SkipPSGSend = 1
        .include "../akg_player.s"
 song_start:
        .include "a_harmless_grenade.s"

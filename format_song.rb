@@ -1,11 +1,13 @@
 #!/bin/ruby
 
-filename = 'song.akg.s'
 
-src = File.read(filename)
+src_filename = ARGV[0]
+dst_filename = ARGV[1]
+
+src = File.read(src_filename)
 pitch_flag = false
 
-File.open(filename, 'w') do |dst|
+File.open(dst_filename, 'w') do |dst|
   src.lines do |line|
     next if /\.even/.match?(line)
 

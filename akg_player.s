@@ -1,5 +1,4 @@
 
-# SkipPSGSend = 1
 /*******************************************************************************
  * +                                                                         + *
  *            Arkos Tracker 2 player "generic" player.                         *
@@ -196,8 +195,8 @@
   .endif
 #----------------------------------------------------------------------------}}}
 
-       .equiv OPCODE_CLC, 0000241 # Opcode for "or a".
-       .equiv OPCODE_SEC, 0000261 # Opcode for "scf".
+       .equiv OPCODE_CLC, 0000241 # Opcode for CLC
+       .equiv OPCODE_SEC, 0000261 # Opcode for SEC
 
        .equiv OPCODE_ADD_IMMEDIATE_R5, 0062705 # Opcode ADD (PC)+,R5
        .equiv OPCODE_SUB_IMMEDIATE_R5, 0162705 # Opcode SUB (PC)+,R5
@@ -1212,14 +1211,12 @@ PSGReg13_End:
 
 end_of_the_send:
 
-.list
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
 
   .ifdef SkipPSGSend
     .balign 16
   .endif
         PSGReg01_Instr: .word 0
-.nolist
         PSGReg23_Instr: .word 0
         PSGReg45_Instr: .word 0
         PSGReg6_8_Instr:
