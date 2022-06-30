@@ -20,10 +20,12 @@ TEST.SAV : test.o
 	chmod -x TEST.SAV
 
 test.o : ../akg_player.s \
+	 ../akg_sound_effects.s \
 	 a_harmless_grenade_playerconfig.s \
 	 a_harmless_grenade.s \
+	 sound_effects.s \
          test.s $(common)
-	$(AS) -al test.s -o test.o
+	$(AS) -alm test.s -o test.o
 
 clean :
 	rm -f *.o *.out *.SAV

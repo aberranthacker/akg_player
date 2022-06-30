@@ -24,7 +24,7 @@
                 .byte 0b11111111 #  8
                 .byte 0b11111111 # 16
                 .byte 0b11111111 # 24
-                .byte 0b11111000 # 32
+                .byte 0b11111110 # 32
                 .byte 0b00000000 # 40
                 #       76543210
                 .=01000
@@ -93,19 +93,53 @@ PStruct:    # Parameters struct (PS)
 
 PPUModuleStart:
         CLR  R0 # Subsong0
-        MOV  $song_start, R5
+        MOV  $song, R5
         CALL PLY_AKG_Init
+        MOV  $sound_effects, R5
+        CALL PLY_AKG_InitSoundEffects
 
-    loop$:
-        CALL PLY_AKG_Play
-        WAIT
-        BR  loop$
+        100$:
+            CALL PLY_AKG_Play
+            WAIT
+
+           .equiv VblanksCounter, .+2
+            INC  $0
+            .list
+            MOV  @-4(PC),R0
+            .nolist
+            DIV  $150,R0
+            TST  R1
+        BNE 100$
+
+           .equiv PlaysCounter, .+2
+            INC  $0
+            MOV  @$PlaysCounter,R0
+            DIV  $5,R0
+            MOV  R1,R0
+            INC  R0
+
+            MOV  @$PlaysCounter,R2
+            DIV  $3,R2
+            MOV  R3,R1
+
+            MOV  $0,R2
+
+            MOV  $1,R0
+            MOV  $0,R1
+            .list
+            CALL PLY_AKG_PlaySoundEffect
+            .nolist
+        BR  100$
 
        .include "a_harmless_grenade_playerconfig.s"
-      # SkipPSGSend = 1
+        SkipPSGSend = 1
+        PLY_AKG_MANAGE_SOUND_EFFECTS = 1
        .include "../akg_player.s"
-song_start:
+song:
        .include "a_harmless_grenade.s"
+       .even
+sound_effects:
+       .include "sound_effects.s"
        .even
 
         MOV  $PPU_PPDONE,@$PBPADR

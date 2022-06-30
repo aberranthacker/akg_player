@@ -208,9 +208,9 @@
         # Includes the sound effects player, if wanted.
         # Important to do it as soon as possible, so that
         # its code can react to the Player Configuration and possibly alter it.
-  .ifdef MANAGE_SOUND_EFFECTS
-       .include "akg_sound_effects.s"
-  .endif # MANAGE_SOUND_EFFECTS
+  .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS
+       .include "../akg_sound_effects.s"
+  .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
         # [[INSERT_SOUND_EFFECT_SOURCE]] # A tag for test units.
                                          # Don't touch or you're dead.
 
@@ -298,11 +298,11 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         MOV  R5,@$Channel3_PtInstrument
 
         # If sound effects, clears the SFX state.
-  .ifdef MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:550
+  .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:550
         CLR  @$Channel1_SoundEffectData
         CLR  @$Channel2_SoundEffectData
         CLR  @$Channel3_SoundEffectData
-  .endif # MANAGE_SOUND_EFFECTS
+  .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
 
 RETURN # Init #--------------------------------------------------------------}}}
 
@@ -1097,12 +1097,11 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 
 # Plays the sound effects, if desired.
 #-------------------------------------------
-  .ifdef MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:1638
-       .error "MANAGE_SOUND_EFFECTS"
-        # IN : A = R7
-        # OUT: A = R7, possibly modified.
+  .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:1638
+        # IN : R0 A = R7
+        # OUT: R0 A = R7, possibly modified.
         CALL PlaySoundEffectsStream
-  .endif # MANAGE_SOUND_EFFECTS
+  .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
 
 /*  -----------------------------------------------------------------------
                                PSG access.
