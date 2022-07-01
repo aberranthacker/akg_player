@@ -9,8 +9,9 @@
 
 # Sound effect 1.
 Soundeffects_Subsong_SoundEffect1:
-        .byte 0    # Speed.
-Soundeffects_Subsong_SoundEffect1_Loop:  .byte 189       # Soft only. Volume: 15.
+        .byte 0         # Speed.
+Soundeffects_Subsong_SoundEffect1_Loop:
+        .byte 189       # Soft only. Volume: 15.
         .byte 1         # Noise: 1.
         .word 95        # Software period.
 
@@ -31,7 +32,8 @@ Soundeffects_Subsong_SoundEffect1_Loop:  .byte 189       # Soft only. Volume: 15
 # Sound effect 2.
 Soundeffects_Subsong_SoundEffect2:
         .byte 1         # Speed.
-Soundeffects_Subsong_SoundEffect2_Loop:  .byte 189       # Soft only. Volume: 15.
+Soundeffects_Subsong_SoundEffect2_Loop:
+        .byte 189       # Soft only. Volume: 15.
         .byte 1         # Noise: 1.
         .word 301       # Software period.
 
@@ -71,8 +73,9 @@ Soundeffects_Subsong_SoundEffect2_Loop:  .byte 189       # Soft only. Volume: 15
 
 # Sound effect 3.
 Soundeffects_Subsong_SoundEffect3:
-        .byte 1    # Speed.
-Soundeffects_Subsong_SoundEffect3_Loop:  .byte 189       # Soft only. Volume: 15.
+        .byte 1         # Speed.
+Soundeffects_Subsong_SoundEffect3_Loop:
+        .byte 189       # Soft only. Volume: 15.
         .byte 1         # Noise: 1.
         .word 119       # Software period.
 
@@ -133,7 +136,8 @@ Soundeffects_Subsong_SoundEffect3_Loop:  .byte 189       # Soft only. Volume: 15
 # Sound effect 4.
 Soundeffects_Subsong_SoundEffect4:
         .byte 1         # Speed.
-Soundeffects_Subsong_SoundEffect4_Loop:  .byte 189       # Soft only. Volume: 15.
+Soundeffects_Subsong_SoundEffect4_Loop:
+        .byte 189       # Soft only. Volume: 15.
         .byte 1         # Noise: 1.
         .word 119       # Software period.
 
@@ -158,7 +162,8 @@ Soundeffects_Subsong_SoundEffect4_Loop:  .byte 189       # Soft only. Volume: 15
 # Sound effect 5.
 Soundeffects_Subsong_SoundEffect5:
         .byte 1         # Speed.
-Soundeffects_Subsong_SoundEffect5_Loop:  .byte 3 # Soft and Hard. Env: 8.
+Soundeffects_Subsong_SoundEffect5_Loop:
+        .byte 3         # Soft and Hard. Env: 8.
         .word 2         # Hardware period.
         .word 27        # Software period.
 

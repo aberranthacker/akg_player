@@ -104,37 +104,40 @@ PPUModuleStart:
 
            .equiv VblanksCounter, .+2
             INC  $0
-            .list
-            MOV  @-4(PC),R0
-            .nolist
-            DIV  $150,R0
+            CLR  R0
+            MOV  @$VblanksCounter,R1
+            DIV  $50,R0
             TST  R1
         BNE 100$
 
            .equiv PlaysCounter, .+2
             INC  $0
-            MOV  @$PlaysCounter,R0
+            CLR  R0                # most significant word
+            MOV  @$PlaysCounter,R1 # least significant word
             DIV  $5,R0
-            MOV  R1,R0
-            INC  R0
+            MOV  R1,R0             # remainder is sound effect number
+            INC  R0                # sound effect number starts from 1
 
-            MOV  @$PlaysCounter,R2
+            CLR  R2                # most significant word
+            MOV  @$PlaysCounter,R3 # least significat word
             DIV  $3,R2
-            MOV  R3,R1
+            MOV  R3,R1             # remainder is channels number
 
-            MOV  $0,R2
+            CLR  R2
+            MOV  @$PlaysCounter,R3
+            DIV  $17,R2
+            MOV  R3,R2             # inverted volume, 0=full volume, 16=no sound
 
-            MOV  $1,R0
-            MOV  $0,R1
-            .list
+           #MOV  $3,R0
+           #MOV  $0,R1
+           #MOV  $0,R2
             CALL PLY_AKG_PlaySoundEffect
-            .nolist
         BR  100$
 
        .include "a_harmless_grenade_playerconfig.s"
-        SkipPSGSend = 1
+       #SkipPSGSend = 1
         PLY_AKG_MANAGE_SOUND_EFFECTS = 1
-       .include "../akg_player.s"
+       .include "akg_player.s"
 song:
        .include "a_harmless_grenade.s"
        .even

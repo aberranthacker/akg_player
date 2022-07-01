@@ -209,7 +209,7 @@
         # Important to do it as soon as possible, so that
         # its code can react to the Player Configuration and possibly alter it.
   .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS
-       .include "../akg_sound_effects.s"
+       .include "akg_sound_effects.s"
   .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
         # [[INSERT_SOUND_EFFECT_SOURCE]] # A tag for test units.
                                          # Don't touch or you're dead.
@@ -1543,7 +1543,7 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
   .endif # PLY_CFG_SoftOnly
 
   .ifdef PLY_CFG_SoftAndHard # CONFIG SPECIFIC
-    .error "1556"
+    .error "1546"
        /*------------------*
         *  Soft and Hard". *
         *------------------*/
@@ -1738,7 +1738,7 @@ StoH_HToS_SandH_Common:
         # Retrig?
         RORB R0
     .ifdef UseRetrig_StoH_HtoS_SandH # CONFIG SPECIFIC
-      .error "1751"
+      .error "1741"
         BCC  SHoHS_AfterRetrig
     .endif # UseRetrig_StoH_HtoS_SandH
 

@@ -1,6 +1,5 @@
 #!/bin/ruby
 
-
 src_filename = ARGV[0]
 dst_filename = ARGV[1]
 

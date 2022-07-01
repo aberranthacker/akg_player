@@ -88,9 +88,11 @@ PLY_AKG_InitSoundEffects:
 #     R1 C = The channel where to play the sound effect (0, 1, 2).
 #     R2 B = Inverted volume (0 = full volume, 16 = no sound). Hardware sounds are also lowered.
 # corrupts R0, R3, R5
+.list
 PLY_AKG_PlaySoundEffect:
       # Gets the address to the sound effect.
         DEC  R0                         # dec a ;The 0th is not encoded.
+        .nolist
                                         # PLY_AKG_PtSoundEffectTable: ld hl,0
                                         # ld e,a
         ASL  R0                         # ld d,0
@@ -157,12 +159,10 @@ ChannelsDataTable:
       # but BEFORE the registers are sent to the PSG.
       # IN:  A = R7.
       # OUT: A = new R7.
-      .list
 PlaySoundEffectsStream: # called by music player
       # Shifts the R7 to the left twice, so that bit 2 and 5 only can be set
       # for each track, below.
         MOV  @$PSGReg7,R2
-        .nolist
         ASL  R2                              # rla
         ASL  R2                              # rla
       # Plays the sound effects on every channel.
@@ -222,9 +222,11 @@ PSES_Play:
                                         # or h
         BZE  1237$                      # ret z ;No sound to be played? Returns immediately.
 
+.list
       # Reads the first byte. What type of sound is it?
 PSES_ReadFirstByte:
         MOVB (R5)+,R0                           # ld a,(hl)
+.nolist
                                                 # inc hl
         MOVB R0,R1                              # ld b,a
         ASRB R0                                 # rra
@@ -250,8 +252,8 @@ PSES_ReadFirstByte:
 
       # Noise?
       .ifdef PLY_CFG_SFX_NoSoftNoHard_Noise # CONFIG SPECIFIC
-        ASRB R1                         # rl b
-        BCC  .+4                        # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
+        ASLB R1                         # rl b
+        BCC  .+6                        # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
         CALL PSES_ReadNoiseAndOpenNoiseChannel
       .endif # PLY_CFG_SFX_NoSoftNoHard_Noise
 
@@ -316,7 +318,7 @@ PSES_HardwareOnly:
       # Calls the shared code that manages everything.
         CALL PSES_Shared_ReadRetrigHardwareEnvPeriodNoise # call PLY_AKG_PSES_Shared_ReadRetrigHardwareEnvPeriodNoise
       # Cuts the sound.
-        BIC  $0b100,R2                  # set 2,c
+        BIT  $BitForSound,R2            # set 2,c
                                         #
         BR   PSES_SavePointerAndExit    # jr PLY_AKG_PSES_SavePointerAndExit
   .endif # PLY_CFG_SFX_HardOnly
@@ -325,7 +327,7 @@ PSES_HardwareOnly:
 
 PSES_SoftwareOrSoftwareAndHardware:
       # Software only?
-        ASRB R0                               #         rra
+        ASRB R0                               # rra
   .ifdef PLY_CFG_SFX_SoftAndHard # CONFIG SPECIFIC
         BCS  PSES_SoftwareAndHardware         # jr c,PLY_AKG_PSES_SoftwareAndHardware
   .endif # PLY_CFG_SFX_SoftAndHard
@@ -338,13 +340,13 @@ PSES_SoftwareOrSoftwareAndHardware:
                                                 #
       # Noise?
         ASLB R1                                 # rl b
-      .ifdef SFX_SoftOnly_Noise                 # CONFIG SPECIFIC
-        BCC  .+4                                # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
+      .ifdef PLY_CFG_SFX_SoftOnly_Noise                 # CONFIG SPECIFIC
+        BCC  .+6                                # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
         CALL PSES_ReadNoiseAndOpenNoiseChannel
       .endif # PLY_CFG_SFX_SoftOnly_Noise
                                                 #
       # Opens the "sound" channel.
-        BIC  $0b100,R2                          # res 2,c
+        BIC  $BitForSound,R2                    # res 2,c
                                                 #
       # Reads the software period.
         CALL PSES_ReadSoftwarePeriod # call PLY_AKG_PSES_ReadSoftwarePeriod
@@ -362,7 +364,7 @@ PSES_SoftwareAndHardware:
       # Reads the software period.
         CALL PSES_ReadSoftwarePeriod    # call PLY_AKG_PSES_ReadSoftwarePeriod
       # Opens the sound.
-        BIC  $0b100,R2                  # res 2,c
+        BIC  $BitForSound,R2            # res 2,c
                                         #
         BR   PSES_SavePointerAndExit    # jr PLY_AKG_PSES_SavePointerAndExit
   .endif # PLY_AKG_SE_HardwareSounds
@@ -394,16 +396,16 @@ PSES_H_AfterRetrig:
       # B not needed after, we can put it in the condition too.
       # Noise?
         ASLB R1                         # rl b
-        BCC  .+4                        # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
+        BCC  .+6                        # call c,PLY_AKG_PSES_ReadNoiseAndOpenNoiseChannel
         CALL PSES_ReadNoiseAndOpenNoiseChannel
       .endif # PLY_AKG_SE_HardwareNoise
                                         #
       # Reads the hardware period.
-        CALL PSES_ReadHardwarePeriod     # call PLY_AKG_PSES_ReadHardwarePeriod
-                                         #
+        CALL PSES_ReadHardwarePeriod      # call PLY_AKG_PSES_ReadHardwarePeriod
+                                          #
       # Sets the volume to "hardware". It still may be decreased.
-        MOV  $16,R0                      # ld a,16
-        BR   PSES_ManageVolumeFromA_Hard # jp PLY_AKG_PSES_ManageVolumeFromA_Hard
+        MOV  $16,R0                       # ld a,16
+        BR   PSES_ManageVolumeFromR0_Hard # jp PLY_AKG_PSES_ManageVolumeFromA_Hard
   .endif # PLY_CFG_UseHardwareSounds
 
 
@@ -415,7 +417,7 @@ PSES_ReadNoiseAndOpenNoiseChannel:
                                         # ld (PLY_AKG_PSGReg6),a
                                         # inc hl
       # Opens noise channel.
-        BIC  $0b100000,R2               # res 5,c
+        BIC  $BitForNoise,R2            # res 5,c
         RETURN                          # ret
   .endif # PLY_AKG_SE_Noise
 
@@ -458,7 +460,7 @@ PSES_ManageVolumeFromR0_Filter4Bits:
    .ifdef PLY_AKG_SE_VolumeSoftOrHard # CONFIG SPECIFIC
       # After the filtering. Useful for hardware sound
       # (volume has been forced to 16).
-PSES_ManageVolumeFromA_Hard:
+PSES_ManageVolumeFromR0_Hard:
       # Decreases the volume, checks the limit.
         SUB  SoundEffectData_OffsetInvertedVolume(R3),R0 # sub (ix + PLY_AKG_SoundEffectData_OffsetInvertedVolume)
         BCC  PSES_MVFA_NoOverflow       # jr nc,PLY_AKG_PSES_MVFA_NoOverflow

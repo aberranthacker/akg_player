@@ -25,7 +25,7 @@ test.o : ../akg_player.s \
 	 a_harmless_grenade.s \
 	 sound_effects.s \
          test.s $(common)
-	$(AS) -alm test.s -o test.o
+	$(AS) -alm test.s -I../ -o test.o
 
 clean :
 	rm -f *.o *.out *.SAV
