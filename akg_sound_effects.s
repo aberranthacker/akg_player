@@ -97,6 +97,7 @@ PLY_AKG_PlaySoundEffect:
       # Reads the header of the sound effect to get the speed.
         MOVB (R3)+,R0
       # Finds the pointer to the sound effect of the desired channel.
+        ASL  R1
         MOV  ChannelsDataTable(R1),R5
         MOV  R3,(R5)+ # now stores pointer to next Cell of the sound effect
         MOV  R2,(R5)+ # the inverted volume
