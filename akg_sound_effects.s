@@ -271,7 +271,7 @@ PSES_HardwareOnly:
       # Calls the shared code that manages everything.
         CALL PSES_Shared_ReadRetrigHardwareEnvPeriodNoise
       # Cuts the sound.
-        BIT  $BitForSound,R2
+        BIS  $BitForSound,R2
         BR   PSES_SavePointerAndExit
   .endif # PLY_CFG_SFX_HardOnly
 
