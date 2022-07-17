@@ -1109,13 +1109,7 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # Sends the registers to the PSG. Only general registers are sent,
 # the specific ones have already been sent.
 SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
-     .ifdef SkipPSGSend
-        JMP  end_of_the_send
-     .else
-        NOP
-        NOP
-     .endif
-
+       .equiv PLY_AKG_PSGAddress, .+2
         MOV  $0177360,R4
         MOV  $PSGReg01_Instr,R5
 
@@ -1153,12 +1147,8 @@ SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
 
         INC  R3
         MOV  R3,(R4)    # Register 7: Enable, inverted
-  .ifdef SkipPSGSend
-        MOVB @$PSGReg7,(R4)
-  .else
-        MOVB (PC)+,(R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
-        PSGReg7: .word 0
-  .endif
+       .equiv PSGReg7, .+2
+        MOVB $0,(R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
 
         INC  R3
         MOV  R3,(R4)    # Register 8: Channel A Amplitude
@@ -1212,9 +1202,6 @@ end_of_the_send:
 
         RETURN # playerAkg/sources/PlayerAkg.asm:2216 #----------------------}}}
 
-  .ifdef SkipPSGSend
-    .balign 16
-  .endif
         PSGReg01_Instr: .word 0
         PSGReg23_Instr: .word 0
         PSGReg45_Instr: .word 0
@@ -1226,10 +1213,6 @@ end_of_the_send:
                 PSGReg10: .byte 0
         PSGHardwarePeriod_Instr: .word 0
         PSGReg13_Instr: .word 0
-  .ifdef SkipPSGSend
-        PSGReg7: .word 0
-  .endif
-
 
 
        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

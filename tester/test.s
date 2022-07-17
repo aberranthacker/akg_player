@@ -92,6 +92,26 @@ PStruct:    # Parameters struct (PS)
         .=023666
 
 PPUModuleStart:
+        MOV  $0177400,R1
+        MOV  @$4,@$DefaultTrap4Handler
+        MOV  $Trap4,@$4
+      # Aberrant Sound Module uses addresses range 0177360-0177377
+      # 16 addresses in total and 8 even addresses
+        MOV  $8,R0
+        TestNextSoundBoardAddress:
+            TST  -(R1)
+        SOB  R0,TestNextSoundBoardAddress
+
+        TST  @$Trap4Detected
+        BZE  PSGPresent
+
+        MOV  $DummyPSG,R1
+PSGPresent:
+        MOV  R1,@$PLY_AKG_PSGAddress
+        CLR  @$Trap4Detected
+       .equiv DefaultTrap4Handler, .+2
+        MOV  $0173362,@$4
+
         CLR  R0 # Subsong0
         MOV  $song, R5
         CALL PLY_AKG_Init
@@ -153,6 +173,12 @@ sound_effects:
         MOV  (R1),R1
         JMP  @$0176300       # free allocated memory and exit
 
+Trap4:
+       .equiv Trap4Detected, .+4
+        MOV  $0xFFFF,$0
+        RTI
+
+DummyPSG: .word 0
 PPUAllocAddr: .word 023666
 
 PPUModuleEnd:

@@ -155,13 +155,7 @@ PLY_SE_PlaySoundEffectsStream:
         MOV  R2,@$PLY_SE_PSGReg7
 
 PLY_SE_SendPSGRegisters: #---------------------------------------------------{{{
-     .ifdef SkipPSGSend
-        JMP  PLY_SE_end_of_the_send
-     .else
-        NOP
-        NOP
-     .endif
-
+       .equiv PLY_SE_PSGAddress, .+2
         MOV  $0177362,R4
         MOV  $PLY_SE_PSGReg01_Instr,R5
 
@@ -199,12 +193,8 @@ PLY_SE_SendPSGRegisters: #---------------------------------------------------{{{
 
         INC  R3
         MOV  R3,(R4)    # Register 7: Enable, inverted
-  .ifdef SkipPSGSend
-        MOVB @$PLY_SE_PSGReg7,(R4)
-  .else
        .equiv PLY_SE_PSGReg7, .+2
         MOVB $0,(R4)    # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
-  .endif
 
         INC  R3
         MOV  R3,(R4)    # Register 8: Channel A Amplitude
@@ -257,13 +247,7 @@ PLY_SE_SendPSGRegisters: #---------------------------------------------------{{{
 PLY_SE_PSGReg13_End:
   .endif # PLY_CFG_UseHardwareSounds
 
-PLY_SE_end_of_the_send:
-
         RETURN #-------------------------------------------------------------}}}
-
-  .ifdef SkipPSGSend
-    .balign 16
-  .endif
 
         PLY_SE_PSGReg01_Instr: .word 0
         PLY_SE_PSGReg23_Instr: .word 0
@@ -276,10 +260,6 @@ PLY_SE_end_of_the_send:
                 PLY_SE_PSGReg10: .byte 0
         PLY_SE_PSGHardwarePeriod_Instr: .word 0
         PLY_SE_PSGReg13_Instr: .word 0
-
-  .ifdef SkipPSGSend
-        PLY_SE_PSGReg7: .word 0
-  .endif
 
 
       # Plays the sound stream from the given pointer to the sound effect.
