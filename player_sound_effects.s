@@ -108,6 +108,7 @@ PLY_SE_PlaySoundEffect: # playerSoundEffects/sources/PlayerSoundEffects.asm:217
 # IN: R0 A = The channel where to stop the sound effect (0, 1, 2).
 PLY_SE_StopSoundEffectFromChannel: # playerSoundEffects/sources/PlayerSoundEffects.asm:269
       # Puts 0 to the pointer of the sound effect.
+        ASL  R0
         CLR  @PLY_SE_ChannelsDataTable(R0) # 0 means "no sound".
         RETURN
 
@@ -153,7 +154,7 @@ PLY_SE_PlaySoundEffectsStream:
 
         MOV  R2,@$PLY_SE_PSGReg7
 
-PLY_SE_SendPSGRegisters: #----------------------------------------------------------{{{
+PLY_SE_SendPSGRegisters: #---------------------------------------------------{{{
      .ifdef SkipPSGSend
         JMP  PLY_SE_end_of_the_send
      .else

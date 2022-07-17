@@ -110,6 +110,7 @@ PLY_AKG_PlaySoundEffect:
 # IN: R0 A = The channel where to stop the sound effect (0, 1, 2).
 PLY_AKG_StopSoundEffectFromChannel:
       # Puts 0 to the pointer of the sound effect.
+        ASL  R0
         CLR  @ChannelsDataTable(R0) # 0 means "no sound".
         RETURN
 
