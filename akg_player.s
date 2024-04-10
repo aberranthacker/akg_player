@@ -242,9 +242,8 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         MOV  (R5)+,@$InstrumentsTable3
 
   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:456
-        MOV  (R5)+,R3
-        MOV  R3,@$Channel_ReadEffects_EffectBlocks1
-        MOV  R3,@$Channel_ReadEffects_EffectBlocks2
+        MOV  (R5), @$Channel_ReadEffects_EffectBlocks1
+        MOV  (R5)+,@$Channel_ReadEffects_EffectBlocks2
   .else # No effects.
         INC  R5
         INC  R5 # Skips the effect block table.
@@ -267,19 +266,19 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
         MOV  $InitTable0,R5
        .set words_count, (InitTable0_End - InitTable0) >> 1
         MOV  $words_count + 1,R1
-        CLR  R2
+        CLR  R0
         CALL Init_ReadWordsAndFill
 
         MOV  $InitTable1,R5
        .set words_count, (InitTable1_End - InitTable1) >> 1
         MOV  $words_count + 1,R1
-        INC  R2
+        INC  R0
         CALL Init_ReadWordsAndFill
 
         MOV  $InitTableOrA,R5
        .set words_count, (InitTableOrA_End - InitTableOrA) >> 1
         MOV  $words_count + 1,R1
-        MOV  $OPCODE_CLC,R2 # CLC opcode
+        MOV  $OPCODE_CLC,R0 # CLC opcode
         CALL Init_ReadWordsAndFill
 
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:511
@@ -310,9 +309,9 @@ RETURN # Init #--------------------------------------------------------------}}}
         # Fills all the read addresses with a byte.
         # IN:    R5 = table where the addresses are.
         #        R1 = how many items in the table + 1.
-        #        R2 = byte to fill.
+        #        R0 = byte to fill.
 Init_ReadWordsAndFill_Loop:
-        MOV  R2,@(R5)+
+        MOV  R0,@(R5)+
 Init_ReadWordsAndFill:
         SOB  R1,Init_ReadWordsAndFill_Loop
 
@@ -368,7 +367,7 @@ InitTableOrA_End: #----------------------------------------------------------}}}
         # Stops the music.
         # This code can be removed if you don't intend to stop it!
 PLY_AKG_Stop:
-        # Only useful because the SendPSGRegisters restores it at the end.
+        # All the volumes to 0, all sound/noise channels stopped.
         CLRB @$PSGReg8
         CLR  @$PSGReg9_10_Instr
         MOV  $0b00111111, @$PSGReg7
@@ -385,27 +384,29 @@ PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676 #
   .endif # PLY_CFG_UseEventTracks
 
         # Decreases the tick counter. If 0 is reached, a new line must be read.
-        MOV  (PC)+,R0; TickDecreasingCounter: .word 1
+       .equiv TickDecreasingCounter, .+2
+        MOV  $1,R0
         DEC  R0
-        BZE  new_line$
+        BZE  ReadNewLine
         # Jumps if there is no new line: continues playing the sound stream.
         JMP  SetSpeedBeforePlayStreams
 
-new_line$:
+ReadNewLine:
         # New line! Is the Pattern ended?
         # Not as long as there are lines to read.
-        MOV  (PC)+,R0; PatternDecreasingHeight: .word 1
+       .equiv PatternDecreasingHeight, .+2
+        MOV  $1,R0
         DEC  R0
-        BZE  new_pattern$ # pattern ended
+        BZE  ReadLinker # pattern ended
         # Jumps if the pattern isn't ended.
         JMP  SetCurrentLineBeforeReadLine
 
-new_pattern$:
         # New pattern!
         # Reads the Linker. This is called at the start of the song,
         # or at the end of every position.
 ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
-        MOV  (PC)+,R4; ReadLinker_PtLinker: .word 0
+       .equiv ReadLinker_PtLinker, .+2
+        MOV  $0,R4
         # Reads the address of each Track.
         MOV  (R4)+,R5
         BNZ  ReadLinker_NoLoop
@@ -635,9 +636,9 @@ Channel\cN\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
         MOVB (R5)+,R4 # NOTE: 127 instruments supported only
 
         ASL  R4
-        MOV  0(R4),R4
         # Points on the Instruments table of the music (set on song initialization).
-       .equiv InstrumentsTable\cN, .-2
+       .equiv InstrumentsTable\cN, .+2
+        MOV  0(R4),R4
 
         # No need to store an "original speed" if "force instrument speed"
         # effect is not used.
@@ -1705,12 +1706,12 @@ S_Or_H_ForcedPeriod: # playerAkg/sources/PlayerAkg.asm:2893
 RETURN
   .endif # UseInstrumentForcedPeriods
 
-        #------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # Common code for SoftToHard and HardToSoft, and even Soft And Hard.
         # The same register constraints as the methods above apply.
         # OUT:   R3 = frequency.
         #        R0 = negated ratio
-        #             ready to be used in ASH to multiply/divide the frequency.
+        #             ready to be used with ASH to multiply/divide the frequency.
         #        R1 = bit states, shifted four times to the left
         #            (for StoH/HtoS, the msb will be "pitch shift?")
         #            (hardware for SoftTohard, software for HardToSoft).
