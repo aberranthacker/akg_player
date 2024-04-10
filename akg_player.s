@@ -198,10 +198,10 @@
        .equiv OPCODE_CLC, 0000241 # Opcode for CLC
        .equiv OPCODE_SEC, 0000261 # Opcode for SEC
 
-       .equiv OPCODE_ADD_IMMEDIATE_R5, 0062705 # Opcode ADD (PC)+,R5
-       .equiv OPCODE_SUB_IMMEDIATE_R5, 0162705 # Opcode SUB (PC)+,R5
-       .equiv OPCODE_ADD_IMMEDIATE_IMMEDIATE, 0062727 # Opcode ADD (PC)+,(PC)+
-       .equiv OPCODE_SUB_IMMEDIATE_IMMEDIATE, 0162727 # Opcode SUB (PC)+,(PC)+
+       .equiv OPCODE_ADD_IMMEDIATE_R5, 0062705 # Opcode ADD (PC)+, R5
+       .equiv OPCODE_SUB_IMMEDIATE_R5, 0162705 # Opcode SUB (PC)+, R5
+       .equiv OPCODE_ADD_IMMEDIATE_IMMEDIATE, 0062727 # Opcode ADD (PC)+, (PC)+
+       .equiv OPCODE_SUB_IMMEDIATE_IMMEDIATE, 0162727 # Opcode SUB (PC)+, (PC)+
        .equiv OPCODE_ADC_R5, 005505 # Opcode ADC R5
        .equiv OPCODE_SBC_R5, 005605 # Opcode SBC R5
 
@@ -219,31 +219,31 @@
 #       R0 = subsong index (>=0).
 PLY_AKG_Init: #--------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC
-        ADD  $4,R5 # Skip the tag
+        ADD  $4, R5 # Skip the tag
     .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:432
-        MOV  (R5)+, @$ArpeggiosTable
+        MOV  (R5)+, ArpeggiosTable
     .else
         INC  R5
         INC  R5
     .endif # PLY_AKS_UseEffect_Arpeggio
 
     .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:440
-        MOV  (R5)+, @$PitchesTable
+        MOV  (R5)+, PitchesTable
     .else
         INC  R5
         INC  R5
     .endif # PLY_CFG_UseEffect_PitchTable
   .else # No effects.
-        ADD  $4+2+2,R5 # Skips the tag and the arp/pitch table.
+        ADD  $4+2+2, R5 # Skips the tag and the arp/pitch table.
   .endif # PLY_CFG_UseEffects
 
-        MOV  (R5), @$InstrumentsTable1
-        MOV  (R5), @$InstrumentsTable2
-        MOV  (R5)+,@$InstrumentsTable3
+        MOV  (R5), InstrumentsTable1
+        MOV  (R5), InstrumentsTable2
+        MOV  (R5)+, InstrumentsTable3
 
   .ifdef PLY_CFG_UseEffects # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:456
-        MOV  (R5), @$Channel_ReadEffects_EffectBlocks1
-        MOV  (R5)+,@$Channel_ReadEffects_EffectBlocks2
+        MOV  (R5), Channel_ReadEffects_EffectBlocks1
+        MOV  (R5)+, Channel_ReadEffects_EffectBlocks2
   .else # No effects.
         INC  R5
         INC  R5 # Skips the effect block table.
@@ -251,56 +251,56 @@ PLY_AKG_Init: #--------------------------------------------------------------{{{
 
         # We have reached the Subsong addresses. Which one to use?
         ASL  R0
-        ADD  R0,R5
+        ADD  R0, R5
 
-        MOV  (R5),R5 # R5 points on the Subsong metadata.
-        ADD  $5,R5   # Skips the replay frequency, digichannel, psg count, loop start index, end index.
-        MOVB (R5)+,@$CurrentSpeed
-        MOVB (R5)+,@$BaseNoteIndex
+        MOV  (R5), R5 # R5 points on the Subsong metadata.
+        ADD  $5, R5   # Skips the replay frequency, digichannel, psg count, loop start index, end index.
+        MOVB (R5)+, CurrentSpeed
+        MOVB (R5)+, BaseNoteIndex
 
         INC  R5 # align on word boundary, kind of
-        MOV  R5,@$ReadLinker_PtLinker
+        MOV  R5, ReadLinker_PtLinker
 
         # Initializes values. You can remove this part if you don't stop/restart your song.
   .if FULL_INIT_CODE # playerAkg/sources/PlayerAkg.asm:492
-        MOV  $InitTable0,R5
+        MOV  $InitTable0, R5
        .set words_count, (InitTable0_End - InitTable0) >> 1
-        MOV  $words_count + 1,R1
+        MOV  $words_count + 1, R1
         CLR  R0
         CALL Init_ReadWordsAndFill
 
-        MOV  $InitTable1,R5
+        MOV  $InitTable1, R5
        .set words_count, (InitTable1_End - InitTable1) >> 1
-        MOV  $words_count + 1,R1
+        MOV  $words_count + 1, R1
         INC  R0
         CALL Init_ReadWordsAndFill
 
-        MOV  $InitTableOrA,R5
+        MOV  $InitTableOrA, R5
        .set words_count, (InitTableOrA_End - InitTableOrA) >> 1
-        MOV  $words_count + 1,R1
-        MOV  $OPCODE_CLC,R0 # CLC opcode
+        MOV  $words_count + 1, R1
+        MOV  $OPCODE_CLC, R0 # CLC opcode
         CALL Init_ReadWordsAndFill
 
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:511
-        MOV  $0xFF,@$PSGReg13_OldValue
+        MOV  $0xFF, PSGReg13_OldValue
     .endif
   .endif # FULL_INIT_CODE
 
         # Stores the address to the empty instrument *data* (header skipped).
-        MOV  @$InstrumentsTable1,R5
-        MOV  (R5),R5
+        MOV  InstrumentsTable1, R5
+        MOV  (R5), R5
         INC  R5 # Skip the header
-        MOV  R5,@$EmptyInstrumentDataPt
+        MOV  R5, EmptyInstrumentDataPt
         # Sets all the instrument to "empty".
-        MOV  R5,@$Channel1_PtInstrument
-        MOV  R5,@$Channel2_PtInstrument
-        MOV  R5,@$Channel3_PtInstrument
+        MOV  R5, Channel1_PtInstrument
+        MOV  R5, Channel2_PtInstrument
+        MOV  R5, Channel3_PtInstrument
 
         # If sound effects, clears the SFX state.
   .ifdef PLY_AKG_MANAGE_SOUND_EFFECTS # playerAkg/sources/PlayerAkg.asm:550
-        CLR  @$Channel1_SoundEffectData
-        CLR  @$Channel2_SoundEffectData
-        CLR  @$Channel3_SoundEffectData
+        CLR  Channel1_SoundEffectData
+        CLR  Channel2_SoundEffectData
+        CLR  Channel3_SoundEffectData
   .endif # PLY_AKG_MANAGE_SOUND_EFFECTS
 
 RETURN # Init #--------------------------------------------------------------}}}
@@ -311,9 +311,9 @@ RETURN # Init #--------------------------------------------------------------}}}
         #        R1 = how many items in the table + 1.
         #        R0 = byte to fill.
 Init_ReadWordsAndFill_Loop:
-        MOV  R0,@(R5)+
+        MOV  R0, @(R5)+
 Init_ReadWordsAndFill:
-        SOB  R1,Init_ReadWordsAndFill_Loop
+        SOB  R1, Init_ReadWordsAndFill_Loop
 
         RETURN
 
@@ -368,9 +368,9 @@ InitTableOrA_End: #----------------------------------------------------------}}}
         # This code can be removed if you don't intend to stop it!
 PLY_AKG_Stop:
         # All the volumes to 0, all sound/noise channels stopped.
-        CLRB @$PSGReg8
-        CLR  @$PSGReg9_10_Instr
-        MOV  $0b00111111, @$PSGReg7
+        CLRB PSGReg8
+        CLR  PSGReg9_10_Instr
+        MOV  $0b00111111, PSGReg7
         JMP  SendPSGRegisters
   .endif # STOP_SOUNDS #-----------------------------------------------------}}}
 
@@ -380,12 +380,12 @@ PLY_AKG_Stop:
 ################################################################################
 PLY_AKG_Play: # playerAkg/sources/PlayerAkg.asm:676 #
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-        CLR  @$Event
+        CLR  Event
   .endif # PLY_CFG_UseEventTracks
 
         # Decreases the tick counter. If 0 is reached, a new line must be read.
        .equiv TickDecreasingCounter, .+2
-        MOV  $1,R0
+        MOV  $1, R0
         DEC  R0
         BZE  ReadNewLine
         # Jumps if there is no new line: continues playing the sound stream.
@@ -395,7 +395,7 @@ ReadNewLine:
         # New line! Is the Pattern ended?
         # Not as long as there are lines to read.
        .equiv PatternDecreasingHeight, .+2
-        MOV  $1,R0
+        MOV  $1, R0
         DEC  R0
         BZE  ReadLinker # pattern ended
         # Jumps if the pattern isn't ended.
@@ -406,32 +406,32 @@ ReadNewLine:
         # or at the end of every position.
 ReadLinker: # playerAkg/sources/PlayerAkg.asm:704
        .equiv ReadLinker_PtLinker, .+2
-        MOV  $0,R4
+        MOV  $0, R4
         # Reads the address of each Track.
-        MOV  (R4)+,R5
+        MOV  (R4)+, R5
         BNZ  ReadLinker_NoLoop
         # End of the song.
-        MOV  (R4)+,R4 # read loop address
-        MOV  (R4)+,R5 # Reads once again the address of Track 1, in the pattern looped to.
+        MOV  (R4)+, R4 # read loop address
+        MOV  (R4)+, R5 # Reads once again the address of Track 1, in the pattern looped to.
 ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
-        MOV  R5,@$Channel1_PtTrack
-        MOV  (R4)+,@$Channel2_PtTrack
-        MOV  (R4)+,@$Channel3_PtTrack
+        MOV  R5, Channel1_PtTrack
+        MOV  (R4)+, Channel2_PtTrack
+        MOV  (R4)+, Channel3_PtTrack
         # Reads the address of the LinkerBlock.
-        MOV  (R4)+,R5
-        MOV  R4,@$ReadLinker_PtLinker
-        MOV  R5,R4
+        MOV  (R4)+, R5
+        MOV  R4, ReadLinker_PtLinker
+        MOV  R5, R4
 
         # Reads the LinkerBlock. R4 = LinkerBlock.
         # Reads the height and transposition1.
-        MOV  (R4)+,R5
+        MOV  (R4)+, R5
         CLR  R2
-        BISB R5,R2 # Height
+        BISB R5, R2 # Height
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
         SWAB R5
-        MOVB R5,R0 # can be negative, sign extension is required
-        MOV  R0,@$Channel1_Transposition
+        MOVB R5, R0 # can be negative, sign extension is required
+        MOV  R0, Channel1_Transposition
   .endif # PLY_CFG_UseTranspositions
 
         # Reads the transposition2 and 3.
@@ -446,43 +446,43 @@ ReadLinker_NoLoop: # playerAkg/sources/PlayerAkg.asm:720
   .endif # UseSpecialTracks #------------------------------------------------}}}
 
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:747
-        MOVB (R4)+,R5 # can be negative, sign extension is required
-        MOV  R5,@$Channel2_Transposition
-        MOVB (R4)+,R5 # can be negative, sign extension is required
-        MOV  R5,@$Channel3_Transposition
+        MOVB (R4)+, R5 # can be negative, sign extension is required
+        MOV  R5, Channel2_Transposition
+        MOVB (R4)+, R5 # can be negative, sign extension is required
+        MOV  R5, Channel3_Transposition
   .endif # PLY_CFG_UseTranspositions
 
   .ifdef UseSpecialTracks # CONFIG SPECIFIC #--------------------------------{{{
         # Reads the special Tracks addresses.
         # Must be performed even SpeedTracks not used, because EventTracks might
         # be present, the word must be skipped.
-        MOV  (R4)+,R5
+        MOV  (R4)+, R5
     # Reads the special Tracks addresses.
     .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
-        MOV  R5, @$SpeedTrack_PtTrack
+        MOV  R5, SpeedTrack_PtTrack
     .endif # PLY_CFG_UseSpeedTracks
 
     .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
-        MOV  (R4)+,R5
-        MOV  R5, @$EventTrack_PtTrack
+        MOV  (R4)+, R5
+        MOV  R5, EventTrack_PtTrack
     .endif # PLY_CFG_UseEventTracks
   .endif # UseSpecialTracks #------------------------------------------------}}}
 
         # Forces the reading of every Track and Special Track.
   .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC #--------------------------{{{
-        CLR  @$SpeedTrack_WaitCounter
+        CLR  SpeedTrack_WaitCounter
   .endif # PLY_CFG_UseSpeedTracks #------------------------------------------}}}
 
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC #--------------------------{{{
-        CLR  @$EventTrack_WaitCounter
+        CLR  EventTrack_WaitCounter
   .endif # PLY_CFG_UseEventTracks #------------------------------------------}}}
 
-        CLR  @$Channel1_WaitCounter
-        CLR  @$Channel2_WaitCounter
-        CLR  @$Channel3_WaitCounter
-        MOV  R2,R0
+        CLR  Channel1_WaitCounter
+        CLR  Channel2_WaitCounter
+        CLR  Channel3_WaitCounter
+        MOV  R2, R0
 SetCurrentLineBeforeReadLine: # playerAkg/sources/PlayerAkg.asm:779
-        MOV  R0,@$PatternDecreasingHeight
+        MOV  R0, PatternDecreasingHeight
 
 
         # Reads the new line (notes, effects, Special Tracks, etc.).
@@ -490,29 +490,31 @@ ReadLine: # playerAkg/sources/PlayerAkg.asm:784
         # Reads the Speed Track.
   .ifdef PLY_CFG_UseSpeedTracks # CONFIG SPECIFIC
         # playerAkg/sources/PlayerAkg.asm:786 #------------------------------{{{
-        MOV  (PC)+,R0; SpeedTrack_WaitCounter: .word 0 # Lines to wait?
-        SUB  $1,R0
+       .equiv SpeedTrack_WaitCounter, .+2
+        MOV  $0, R0 # Lines to wait?
+        SUB  $1, R0
         BCC  SpeedTrack_MustWait # Jump if there are still lines to wait.
         # No more lines to wait. Reads a new data.
         # It may be an event value or a wait value.
-        MOV  (PC)+,R5; SpeedTrack_PtTrack: .word 0
+       .equiv SpeedTrack_PtTrack, .+2
+        MOV  $0, R5
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         ASR  R0 # Bit 0: wait?
         # Jump if wait: R0 is the wait value.
         BCS  SpeedTrack_StorePointerAndWaitCounter
         # Value found. If 0, escape value (rare).
         BNZ  SpeedTrack_NormalValue
         # Escape code. Reads the right value.
-        MOVB (R5)+,R0
+        MOVB (R5)+, R0
 SpeedTrack_NormalValue:
-        MOVB R0,@$CurrentSpeed
+        MOVB R0, CurrentSpeed
 
         CLR  R0 # Next time, a new value is read.
 SpeedTrack_StorePointerAndWaitCounter:
-        MOV  R5,@$SpeedTrack_PtTrack
+        MOV  R5, SpeedTrack_PtTrack
 SpeedTrack_MustWait:
-        MOV  R0,@$SpeedTrack_WaitCounter
+        MOV  R0, SpeedTrack_WaitCounter
 SpeedTrack_End:
   .endif # PLY_CFG_UseSpeedTracks #------------------------------------------}}}
 
@@ -520,16 +522,16 @@ SpeedTrack_End:
         #--------------------------------------------------------------------{{{
   .ifdef PLY_CFG_UseEventTracks # CONFIG SPECIFIC
     .error "528" # playerAkg/sources/PlayerAkg.asm:828
-        MOV  (PC)+,R0 # Lines to wait?
-        EventTrack_WaitCounter: .word 0
-        SUB  $1,R0
+       .equiv EventTrack_WaitCounter, .+2
+        MOV  $0, R0 # Lines to wait?
+        SUB  $1, R0
         BHIS EventTrack_MustWait # Jump if there are still lines to wait.
         # No more lines to wait. Reads a new data.
         # It may be an event value or a wait value.
-        MOV  (PC)+,R5
-        EventTrack_PtTrack: .word 0
+       .equiv EventTrack_PtTrack, .+2
+        MOV  $0, R5
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         ASR  R0 # Bit 0: wait?
         # Jump if wait: R0 is the wait value.
         BCS EventTrack_StorePointerAndWaitCounter
@@ -537,15 +539,15 @@ SpeedTrack_End:
         BNZ EventTrack_NormalValue
         # Escape code. Reads the right value.
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
 EventTrack_NormalValue:
-        MOV  R0,@$Event
+        MOV  R0, Event
 
         CLR  R0 # Next time, a new value is read.
 EventTrack_StorePointerAndWaitCounter:
-        MOV  R5,@$EventTrack_PtTrack
+        MOV  R5, EventTrack_PtTrack
 EventTrack_MustWait:
-        MOV  R0,@$EventTrack_WaitCounter
+        MOV  R0, EventTrack_WaitCounter
 EventTrack_End:
 
   .endif # PLY_CFG_UseEventTracks #------------------------------------------}}}
@@ -558,25 +560,27 @@ EventTrack_End:
 
 .macro ReadTrack cN # playerAkg/sources/PlayerAkg.asm:873 #------------------{{{
         # Lines to wait?
-        DECB (PC)+; Channel\cN\()_WaitCounter: .word 0
+       .equiv Channel\cN\()_WaitCounter, .+2
+        DECB $0
         BMI  Channel\cN\()_ReadTrack
         # Still some lines to wait.
         JMP  Channel\cN\()_ReadCellEnd
 
 Channel\cN\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
         # Points on the Cell to read.
-        MOV  (PC)+,R5; Channel\cN\()_PtTrack: .word 0
+       .equiv Channel\cN\()_PtTrack, .+2
+        MOV  $0, R5
         # Reads note data. It can be a note, a wait...
 
         CLR  R2
-        BISB (R5)+,R2 # R2 = data (b5-0) + effect? (b6) + new Instrument? (b7).
-        MOV  R2,R0
-        BIC  $0xFFC0,R0 # R0 = data
+        BISB (R5)+, R2 # R2 = data (b5-0) + effect? (b6) + new Instrument? (b7).
+        MOV  R2, R0
+        BIC  $0xFFC0, R0 # R0 = data
         # 0-59: note.
         # "CMP" is preferred to "SUB" so that the "note" branch (the slowest) is note-ready.
-        CMP  R0,$60
+        CMP  R0, $60
         BLO  Channel\cN\()_Note
-        SUB  $60,R0
+        SUB  $60, R0
        .jmp  EQ, Channel\cN\()_MaybeEffects # 60 = no note, but maybe effects.
         DEC  R0
         BZE  Channel\cN\()_Wait             # 61 = wait, no effect.
@@ -585,28 +589,27 @@ Channel\cN\()_ReadTrack: # playerAkg/sources/PlayerAkg.asm:886
         # 63 = escape code for note, maybe effects.
         # Reads the note in the next byte
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         BR   Channel\cN\()_AfterNoteKnown
 
         # Small wait, no effect.
 Channel\cN\()_SmallWait: # playerAkg/sources/PlayerAkg.asm:914
-        ASH  $-6,R2 # Uses bit 6/7 to indicate how many lines to wait.
+        ASH  $-6, R2 # Uses bit 6/7 to indicate how many lines to wait.
         INC  R2 # This wait start at 2 lines, to 5.
-        MOV  R2,@$Channel\cN\()_WaitCounter
+        MOV  R2, Channel\cN\()_WaitCounter
         BR   Channel\cN\()_BeforeEnd_StoreCellPointer
 
         # Wait, no effect.
 Channel\cN\()_Wait: # playerAkg/sources/PlayerAkg.asm:924
         # Reads the wait value on the next byte (HL has already been incremented).
-        MOVB (R5)+,@$Channel\cN\()_WaitCounter
+        MOVB (R5)+, Channel\cN\()_WaitCounter
         BR   Channel\cN\()_BeforeEnd_StoreCellPointer
 
         # Little subcode put here, called just below. A bit dirty, but avoids long jump.
 Channel\cN\()_SameInstrument: # playerAkg/sources/PlayerAkg.asm:931
         # No new instrument. The instrument pointer must be reset.
-        MOV  (PC)+,@(PC)+
-        Channel\cN\()_PtBaseInstrument:
-       .word 0, Channel\cN\()_PtInstrument
+       .equiv Channel\cN\()_PtBaseInstrument, .+2
+        MOV  $0, Channel\cN\()_PtInstrument
         BR   Channel\cN\()_AfterInstrument
 
         # A note has been found, plus maybe an Instrument and effects.
@@ -616,41 +619,43 @@ Channel\cN\()_Note: # playerAkg/sources/PlayerAkg.asm:943
   .if \cN == 1
         # The encoded note is only from a 4 octave range, but the first note
         # depends on the best window, determined by the song generator.
-        ADD  (PC)+,R0; BaseNoteIndex: .word 0
+       .equiv BaseNoteIndex, .+2
+        ADD  $0, R0
   .else
-        ADD  @$BaseNoteIndex,R0
+        ADD  BaseNoteIndex, R0
   .endif
 
 Channel\cN\()_AfterNoteKnown: # playerAkg/sources/PlayerAkg.asm:957
   .ifdef PLY_CFG_UseTranspositions # CONFIG SPECIFIC
         # Adds the Track transposition.
-        ADD  (PC)+,R0; Channel\cN\()_Transposition: .word 0
+       .equiv Channel\cN\()_Transposition, .+2
+        ADD  $0, R0
   .endif # PLY_CFG_UseTranspositions
 
-        MOV  R0,@$Channel\cN\()_TrackNote
+        MOV  R0, Channel\cN\()_TrackNote
 
         # R5 = next data. R2 = data byte.
         ROLB R2 # New Instrument?
         BCC  Channel\cN\()_SameInstrument
         # Gets the new Instrument.
-        MOVB (R5)+,R4 # NOTE: 127 instruments supported only
+        MOVB (R5)+, R4 # NOTE: 127 instruments supported only
 
         ASL  R4
         # Points on the Instruments table of the music (set on song initialization).
        .equiv InstrumentsTable\cN, .+2
-        MOV  0(R4),R4
+        MOV  0(R4), R4
 
         # No need to store an "original speed" if "force instrument speed"
         # effect is not used.
   .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC
-        MOVB (R4)+,@$Channel\cN\()_InstrumentOriginalSpeed
+        MOVB (R4)+, Channel\cN\()_InstrumentOriginalSpeed
   .else
-        MOVB (R4)+,@$Channel\cN\()_InstrumentSpeed
+        MOVB (R4)+, Channel\cN\()_InstrumentSpeed
   .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed
 
-        MOV  R4,@$Channel\cN\()_PtInstrument
+        MOV  R4, Channel\cN\()_PtInstrument
         # Useful when playing another note with the same instrument.
-        MOV  R4,@$Channel\cN\()_PtBaseInstrument
+        MOV  R4, Channel\cN\()_PtBaseInstrument
 
 
 Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
@@ -661,35 +666,34 @@ Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
 
         # The track pitch and glide, instrument step are reset.
   .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide # CONFIG SPECIFIC #----------{{{
-        CLR  @$Channel\cN\()_Pitch
-        MOV  $OPCODE_CLC, @$Channel\cN\()_IsPitch
+        CLR  Channel\cN\()_Pitch
+        MOV  $OPCODE_CLC, Channel\cN\()_IsPitch
   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide #--------------------------}}}
 
         # Resets the speed of the Arpeggio and the Pitch.
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC #----------------------{{{
-        CLR  @$Channel\cN\()_ArpeggioTableCurrentStep
+        CLR  Channel\cN\()_ArpeggioTableCurrentStep
         # Resets the speed of the Arpeggio
-        MOV  @$Channel\cN\()_ArpeggioBaseSpeed, @$Channel\cN\()_ArpeggioTableSpeed
+        MOV  Channel\cN\()_ArpeggioBaseSpeed, Channel\cN\()_ArpeggioTableSpeed
         # Points to the first value of the Arpeggio.
-        MOV  @$Channel\cN\()_ArpeggioTableBase, @$Channel\cN\()_ArpeggioTable
+        MOV  Channel\cN\()_ArpeggioTableBase, Channel\cN\()_ArpeggioTable
   .endif # PLY_AKS_UseEffect_Arpeggio #--------------------------------------}}}
 
   .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC #--------------------{{{
-        CLR  @$Channel\cN\()_PitchTableCurrentStep
+        CLR  Channel\cN\()_PitchTableCurrentStep
         # Resets the speed of the Pitch.
-        MOV  @$Channel\cN\()_PitchBaseSpeed, @$Channel\cN\()_PitchTableSpeed
+        MOV  Channel\cN\()_PitchBaseSpeed, Channel\cN\()_PitchTableSpeed
         # Points to the first value of the Pitch.
-        MOV  @$Channel\cN\()_PitchTableBase, @$Channel\cN\()_PitchTable
+        MOV  Channel\cN\()_PitchTableBase, Channel\cN\()_PitchTable
   .endif # PLY_CFG_UseEffect_PitchTable #------------------------------------}}}
 
-        CLR  @$Channel\cN\()_InstrumentStep
+        CLR  Channel\cN\()_InstrumentStep
 
     # If the "force instrument speed" effect is used,
     # the instrument speed must be reset to its original value.
   .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed # CONFIG SPECIFIC #----------{{{
-        MOV  (PC)+,@(PC)+
-        Channel\cN\()_InstrumentOriginalSpeed:
-       .word 0, Channel\cN\()_InstrumentSpeed
+       .equiv Channel\cN\()_InstrumentOriginalSpeed, .+2
+        MOV  $0, Channel\cN\()_InstrumentSpeed
   .endif # PLY_CFG_UseEffect_ForceInstrumentSpeed #--------------------------}}}
 
 
@@ -701,7 +705,7 @@ Channel\cN\()_AfterInstrument: # playerAkg/sources/PlayerAkg.asm:1008
 
         # No effects. Nothing more to read for this cell.
 Channel\cN\()_BeforeEnd_StoreCellPointer:
-        MOV  R5, @$Channel\cN\()_PtTrack
+        MOV  R5, Channel\cN\()_PtTrack
 Channel\cN\()_ReadCellEnd:
 
 .endm # ReadTrack # playerAkg/sources/PlayerAkg.asm:1081 #-------------------}}}
@@ -713,9 +717,10 @@ Channel\cN\()_ReadCellEnd:
 
 
 
-        MOV  (PC)+,R0; CurrentSpeed: .word 0
+       .equiv CurrentSpeed, .+2
+        MOV  $0, R0
 SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
-        MOV  R0,@$TickDecreasingCounter
+        MOV  R0, TickDecreasingCounter
 
 
 
@@ -728,7 +733,8 @@ SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
 
         # Use Volume slide?
         #----------------------------
-        MOV  (PC)+,R5; Channel\cN\()_InvertedVolumeIntegerAndDecimal: .word 0
+       .equiv Channel\cN\()_InvertedVolumeIntegerAndDecimal, .+2
+        MOV  $0, R5
 
         # playerAkg/sources/PlayerAkg.asm:1127
   .equiv Channel\cN\()_InvertedVolumeInteger, Channel\cN\()_InvertedVolumeIntegerAndDecimal + 1
@@ -740,8 +746,8 @@ SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
         CLC
         BCC  Channel\cN\()_VolumeSlide_End
 
-        ADD  (PC)+,R5
-        Channel\cN\()_VolumeSlideValue: .word 0 # May be negative.
+       .equiv Channel\cN\()_VolumeSlideValue, .+2
+        ADD  $0, R5 # May be negative.
         BVC  Channel\cN\()_VolumeNotOverflow
         # Went below 0
         CLR  R5
@@ -750,18 +756,18 @@ SetSpeedBeforePlayStreams: # playerAkg/sources/PlayerAkg.asm:1104
 Channel\cN\()_VolumeNotOverflow:
         # Higher than 15?
         SWAB R5
-        CMPB R5,$15
+        CMPB R5, $15
         BLOS Channel\cN\()_VolumeSetAgain
         CLRB R5
-        BISB $15,R5
+        BISB $15, R5
 Channel\cN\()_VolumeSetAgain:
         SWAB R5
-        MOV  R5,@$Channel\cN\()_InvertedVolumeIntegerAndDecimal
+        MOV  R5, Channel\cN\()_InvertedVolumeIntegerAndDecimal
 Channel\cN\()_VolumeSlide_End:
   .endif # UseEffect_VolumeSlide #-------------------------------------------}}}
 
         SWAB R5
-        MOVB R5,@$Channel\cN\()_GeneratedCurrentInvertedVolume
+        MOVB R5, Channel\cN\()_GeneratedCurrentInvertedVolume
 
         # Use Arpeggio table? OUT: R2 = value.
         #----------------------------------------
@@ -772,34 +778,35 @@ Channel\cN\()_IsArpeggioTable:
         BCC Channel\cN\()_ArpeggioTable_End
 
         # We can read the Arpeggio table for a new value.
-        MOV  (PC)+,R5
-        Channel\cN\()_ArpeggioTable: .word 0 # Points on the data, after the header.
-        MOVB (R5)+,R2 # Reads the value.
-        CMP  R2,$-128 # Loop?
+       .equiv Channel\cN\()_ArpeggioTable, .+2
+        MOV  $0, R5 # Points on the data, after the header.
+        MOVB (R5)+, R2 # Reads the value.
+        CMP  R2, $-128 # Loop?
         BNE  Channel\cN\()_ArpeggioTable_AfterLoopTest
         # Loop. Where to?
         INC  R5 # align at word boundary
-        MOV  (R5),R5
+        MOV  (R5), R5
 
-        MOVB (R5),R2 # Reads the value. Safe, we know there is no loop here.
+        MOVB (R5), R2 # Reads the value. Safe, we know there is no loop here.
 
         # R5 = pointer on what is follows.
         # R2 = value to use.
 Channel\cN\()_ArpeggioTable_AfterLoopTest:
         # Checks the speed.
         # If reached, the pointer can be saved to read a new value next time.
-        MOV  (PC)+,R0; Channel\cN\()_ArpeggioTableCurrentStep: .word 0
+       .equiv Channel\cN\()_ArpeggioTableCurrentStep, .+2
+        MOV  $0, R0
         INC  R0
-        CMP  R0,@$Channel\cN\()_ArpeggioTableSpeed # From 1 to 256.
+        CMP  R0, Channel\cN\()_ArpeggioTableSpeed # From 1 to 256.
         # The current step may be higher than the limit if
         # Force Speed effect is used.
         BLO  Channel\cN\()_ArpeggioTable_BeforeEnd_SaveStep
         # Stores the pointer to read a new value next time.
-        MOV  R5,@$Channel\cN\()_ArpeggioTable
+        MOV  R5, Channel\cN\()_ArpeggioTable
 
         CLR  R0
 Channel\cN\()_ArpeggioTable_BeforeEnd_SaveStep:
-        MOV  R0,@$Channel\cN\()_ArpeggioTableCurrentStep
+        MOV  R0, Channel\cN\()_ArpeggioTableCurrentStep
 Channel\cN\()_ArpeggioTable_End:
   .endif # PLY_AKS_UseEffect_Arpeggio #--------------------------------------}}}
 
@@ -815,25 +822,25 @@ Channel\cN\()_IsPitchTable:
         CLC  # Is there an pitch table? Automodified. SEC if yes, CLC if not.
         BCC  Channel\cN\()_PitchTable_End
 
-        MOV  (PC)+,R5 # Read the Pitch table for a value.
-        Channel\cN\()_PitchTable: .word 0
-        MOV  (R5)+,R3 # Reads the value.
-        MOV  (R5),R5  # Reads the pointer to the next value. Manages the loop automatically!
+       .equiv Channel\cN\()_PitchTable, .+2
+        MOV  $0, R5 # Read the Pitch table for a value.
+        MOV  (R5)+, R3 # Reads the value.
+        MOV  (R5), R5  # Reads the pointer to the next value. Manages the loop automatically!
 
         # Checks the speed.
         # If reached, the pointer can be saved (advance in the Pitch).
-        MOV  (PC)+,R0
-        Channel\cN\()_PitchTableCurrentStep: .word 0
+       .equiv Channel\cN\()_PitchTableCurrentStep, .+2
+        MOV  $0, R0
         INC  R0
-        CMPB R0,@$Channel\cN\()_PitchTableSpeed # From 1 to 256.
+        CMPB R0, Channel\cN\()_PitchTableSpeed # From 1 to 256.
         # The current step may be higher than the limit if Force Speed effect is used.
         BLO  Channel\cN\()_PitchTable_BeforeEnd_SaveStep
         # Advances in the Pitch.
-        MOV  R5,@$Channel\cN\()_PitchTable
+        MOV  R5, Channel\cN\()_PitchTable
 
         CLR  R0
 Channel\cN\()_PitchTable_BeforeEnd_SaveStep:
-        MOV  R0,@$Channel\cN\()_PitchTableCurrentStep
+        MOV  R0, Channel\cN\()_PitchTableCurrentStep
 Channel\cN\()_PitchTable_End:
   .endif # PLY_CFG_UseEffect_PitchTable #------------------------------------}}}
 
@@ -867,7 +874,8 @@ Channel\cN\()_PitchTableBase: .word 0
 Channel\cN\()_AfterArpeggioPitchVariables:
     .endif # PLY_AKS_UseEffect_ArpeggioTableOrPitchTable #-------------------}}}
   .else # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1301
-        MOV  (PC)+,R5; Channel\cN\()_Pitch: .word 0 # #----------------------{{{
+       .equiv Channel\cN\()_Pitch, .+2
+        MOV  $0, R5 # #----------------------{{{
 
 Channel\cN\()_IsPitch:
         CLC # Is there a Pitch? Automodified. SEC if yes, CLC if not.
@@ -879,30 +887,30 @@ Channel\cN\()_IsPitch:
         # Channel\cN\()_GeneratedCurrentArpNote в самом конце
         # ApplyTrailingEffects, и больше нигде не используется
         # почему нельзя было сохранить прям отсюда???
-       #ld ixl,c
+       #ld ixl, c
         # R2 ниже нигде не изменятся и тоже сохраняется в
         # самом конце макроса
     .endif # PLY_AKS_UseEffect_Arpeggio
 
 Channel\cN\()_PitchTrackAddOrSub:
-        ADD  (PC)+,R5 # WILL BE AUTOMODIFIED to ADD or SUB
         # Value from the user. ALWAYS POSITIVE. Does not evolve. MSB is always 0.
-        Channel\cN\()_PitchTrack: .word 0
+       .equiv Channel\cN\()_PitchTrack, .+2
+        ADD  $0, R5 # WILL BE AUTOMODIFIED to ADD or SUB
 
         # Makes the decimal part evolves.
         # Value from the user.
 Channel\cN\()_PitchTrackDecimalInstr:
-        ADD  (PC)+,(PC)+ #  WILL BE AUTOMODIFIED to ADD or SUB.
-        Channel\cN\()_PitchTrackDecimalValue: .word 0
+       .equiv Channel\cN\()_PitchTrackDecimalValue, .+2
         # the label is present in original code
         # but here it acts as a commentary
         # the only result we use down below is the carry flag
-        Channel\cN\()_PitchTrackDecimalCounter: .word 0
+       .equiv Channel\cN\()_PitchTrackDecimalCounter, .+4
+        ADD  $0, $0 #  WILL BE AUTOMODIFIED to ADD or SUB.
 
 Channel\cN\()_PitchTrackIntegerAdcOrSbc:
         ADC  R5 # WILL BE AUTOMODIFIED to ADC or SBC
 
-        MOV  R5,@$Channel\cN\()_Pitch
+        MOV  R5, Channel\cN\()_Pitch
 
         # This must be placed at the any location to allow reaching
         # the variables via R2/R3
@@ -912,19 +920,21 @@ Channel\cN\()_SoundStream_RelativeModifierAddress:
         # playerAkg/sources/PlayerAkg.asm:1360
         # Glide?
         # 0 = no glide. 1 = glide/pitch up. 2 = glide/pitch down.
-        MOV  (PC)+,R0; Channel\cN\()_GlideDirection: .word 0
+       .equiv Channel\cN\()_GlideDirection, .+2
+        MOV  $0, R0
         # Is there a Glide?
         BZE  Channel\cN\()_Glide_End
 
-        MOV  R5,R4
+        MOV  R5, R4
 
-        MOV  @$Channel\cN\()_TrackNote, R1
+        MOV  Channel\cN\()_TrackNote, R1
         ASLB R1
-        ADD  PeriodTable(R1),R4
+        ADD  PeriodTable(R1), R4
         # R4 is now the current period (track pitch + note period).
 
         # Period to reach (note given by the user, converted to period).
-        MOV  (PC)+,R1; Channel\cN\()_GlideToReach: .word 0
+       .equiv Channel\cN\()_GlideToReach, .+2
+        MOV  $0, R1
 
         # Have we reached the glide destination?
         # Depends on the direction.
@@ -933,27 +943,27 @@ Channel\cN\()_SoundStream_RelativeModifierAddress:
 
         # Glide up. Check.
         # The glide period should be lower than the current pitch.
-        SUB  R1,R4
+        SUB  R1, R4
         # If not reached yet, continues the pitch.
         BCC  Channel\cN\()_Glide_End
         BR   Channel\cN\()_GlideOver
 
 Channel\cN\()_GlideDownCheck:
         # The glide period should be higher than the current pitch.
-        SUB  R1,R4
+        SUB  R1, R4
         # If not reached yet, continues the pitch.
         BCS  Channel\cN\()_Glide_End
 
 Channel\cN\()_GlideOver:
         # The glide is over. However, it may be over, so we can't simply use
         # the current pitch period. We have to set the exact needed value.
-        MOV  R1,R5
-        MOV  @$Channel\cN\()_TrackNote, R1
+        MOV  R1, R5
+        MOV  Channel\cN\()_TrackNote, R1
         ASLB R1
-        SUB  PeriodTable(R1),R5
+        SUB  PeriodTable(R1), R5
 
-        MOV  R5,Channel\cN\()_Pitch
-        MOV  $OPCODE_CLC,@$Channel\cN\()_IsPitch
+        MOV  R5, Channel\cN\()_Pitch
+        MOV  $OPCODE_CLC, Channel\cN\()_IsPitch
 
         BR   Channel\cN\()_Glide_End
         #--------------------------------------------------------------------}}}
@@ -990,11 +1000,11 @@ Channel\cN\()_Pitch_End:
         #--------------------------------------------------------------------}}}
   .endif # PLY_AKS_UseEffect_PitchUpOrDownOrGlide # playerAkg/sources/PlayerAkg.asm:1466
 
-        ADD  R3,R5 # Adds the Pitch Table value.
-        MOV  R5,@$Channel\cN\()_GeneratedCurrentPitch
+        ADD  R3, R5 # Adds the Pitch Table value.
+        MOV  R5, Channel\cN\()_GeneratedCurrentPitch
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-        MOV  R2,@$Channel\cN\()_GeneratedCurrentArpNote
+        MOV  R2, Channel\cN\()_GeneratedCurrentArpNote
   .endif # PLY_AKS_UseEffect_Arpeggio
 
 .endm #----------------------------------------------------------------------}}}
@@ -1018,32 +1028,38 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
         # What note to play?
         # The pitch to add to the real note,
         # according to the Pitch Table + Pitch/Glide effect.
-        MOV  (PC)+,R4; Channel\cN\()_GeneratedCurrentPitch: .word 0
+       .equiv Channel\cN\()_GeneratedCurrentPitch, .+2
+        MOV  $0, R4
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC
-        MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
+       .equiv Channel\cN\()_TrackNote, .+2
+        MOV  $0, R3
         # Adds the arpeggio value.
-        ADD  (PC)+,R3; Channel\cN\()_GeneratedCurrentArpNote: .word 0
+       .equiv Channel\cN\()_GeneratedCurrentArpNote, .+2
+        ADD  $0, R3
         # the most significat byte has to be cleared if result is negative
-        BIC  $0xFF00,R3
+        BIC  $0xFF00, R3
   .else # PLY_AKS_UseEffect_Arpeggio
         # Not automodified, stays this way.
-        MOV  (PC)+,R3; Channel\cN\()_TrackNote: .word 0
+       .equiv Channel\cN\()_TrackNote, .+2
+        MOV  $0, R3
   .endif # PLY_AKS_UseEffect_Arpeggio
 
         # playerAkg/sources/PlayerAkg.asm:1539
 
   .ifdef PLY_CFG_UseRetrig
-        MOV  @$Channel\cN\()_InstrumentStep, @$R_Retrig
+        MOV  Channel\cN\()_InstrumentStep, R_Retrig
   .endif # PLY_CFG_UseRetrig
 
         # Instrument data to read (past the header).
-        MOV  (PC)+,R5; Channel\cN\()_PtInstrument: .word 0
-        MOV  (PC)+,R2; Channel\cN\()_GeneratedCurrentInvertedVolume: .word 15
+       .equiv Channel\cN\()_PtInstrument, .+2
+        MOV  $0, R5
+       .equiv Channel\cN\()_GeneratedCurrentInvertedVolume, .+2
+        MOV  $15, R2
   .if \cN == 1
         # For the first channel, sets the R7 value to no noise, all channel on
         # by default ().
-        MOV  $0b11100000, @$PSGReg7
+        MOV  $0b11100000, PSGReg7
   .endif
 
         # PSGReg7  = Reg7
@@ -1056,38 +1072,39 @@ Channel\cN\()_PlayInstrument_RelativeModifierAddress:
 
         # The new and increased Instrument pointer is stored only if its speed
         # has been reached. (>0)
-        MOV  (PC)+,R0
-        Channel\cN\()_InstrumentStep: .word 0
+       .equiv Channel\cN\()_InstrumentStep, .+2
+        MOV  $0, R0
 
         INC  R0
         # playerAkg/sources/PlayerAkg.asm:1577
-        CMP  R0,(PC)+; Channel\cN\()_InstrumentSpeed: .word 0
+       .equiv Channel\cN\()_InstrumentSpeed, .+2
+        CMP  R0, $0
         # Checks C, not only NZ because since the speed can be changed via
         # an effect, the step can get beyond the limit, this must be taken
         # in account.
         BLO  Channel\cN\()_SetInstrumentStep
         # The speed is reached. We can go to the next line on the next frame.
-        MOV  R5, @$Channel\cN\()_PtInstrument
+        MOV  R5, Channel\cN\()_PtInstrument
         CLR  R0
 Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
-        MOV  R0, @$Channel\cN\()_InstrumentStep
+        MOV  R0, Channel\cN\()_InstrumentStep
 
         # Saves the software period and volume for the PSG to send later.
   .if \cN == 1
-        MOV  R3, @$PSGReg01_Instr
-        MOVB R2, @$PSGReg8
+        MOV  R3, PSGReg01_Instr
+        MOVB R2, PSGReg8
   .elseif \cN == 2
-        MOV  R3, @$PSGReg23_Instr
-        MOVB R2, @$PSGReg9
+        MOV  R3, PSGReg23_Instr
+        MOVB R2, PSGReg9
   .elseif \cN == 3
-        MOV  R3, @$PSGReg45_Instr
-        MOVB R2, @$PSGReg10
+        MOV  R3, PSGReg45_Instr
+        MOVB R2, PSGReg10
   .endif
 
   .if \cN != 3
         # Shift Reg7 to the right to let room for the other channels.
         # MSB is 0, so it's safe to use ASR
-        ASR  @$PSGReg7
+        ASR  PSGReg7
   .endif
 .endm # PlayInstrument ------------------------------------------------------}}}
 
@@ -1111,90 +1128,93 @@ Channel\cN\()_SetInstrumentStep: # # playerAkg/sources/PlayerAkg.asm:1585
 # the specific ones have already been sent.
 SendPSGRegisters: # playerAkg/sources/PlayerAkg.asm:1652 # ------------------{{{
        .equiv PLY_AKG_PSGAddress, .+2
-        MOV  $0177360,R4
-        MOV  $PSGReg01_Instr,R5
+        MOV  $0177360, R4
+        MOV  $PSGReg01_Instr, R5
 
         CLR  R3
-        MOV  R3,(R4)    # Register 0: Channel A Tone Period
-        MOVB (R5)+,(R4) # Value: 8-bit fine tune A
+        MOV  R3, (R4)    # Register 0: Channel A Tone Period
+        MOVB (R5)+, (R4) # Value: 8-bit fine tune A
 
         INC  R3
-        MOV  R3,(R4)    # Register 1: Channel A Tone Period
-        MOVB (R5)+,(R4) # Value: 4-bit coarse tune A
+        MOV  R3, (R4)    # Register 1: Channel A Tone Period
+        MOVB (R5)+, (R4) # Value: 4-bit coarse tune A
 
         INC  R3
-        MOV  R3,(R4)    # Register 2: Channel B Tone Period
-        MOVB (R5)+,(R4) # Value : 8-bit fine tune B
+        MOV  R3, (R4)    # Register 2: Channel B Tone Period
+        MOVB (R5)+, (R4) # Value : 8-bit fine tune B
 
         INC  R3
-        MOV  R3,(R4)    # Register 3: Channel B Tone Period
-        MOVB (R5)+,(R4) # Value: 4-bit coarse tune B
+        MOV  R3, (R4)    # Register 3: Channel B Tone Period
+        MOVB (R5)+, (R4) # Value: 4-bit coarse tune B
 
         INC  R3
-        MOV  R3,(R4)    # Register 4: Channel C Tone Period
-        MOVB (R5)+,(R4) # Value : 8-bit fine tune C
+        MOV  R3, (R4)    # Register 4: Channel C Tone Period
+        MOVB (R5)+, (R4) # Value : 8-bit fine tune C
 
         INC  R3
-        MOV  R3,(R4)    # Register 5: Channel C Tone Period
-        MOVB (R5)+,(R4) # Value: 4-bit coarse tune C
+        MOV  R3, (R4)    # Register 5: Channel C Tone Period
+        MOVB (R5)+, (R4) # Value: 4-bit coarse tune C
 
         INC  R3
   .ifdef Use_NoiseRegister # CONFIG SPECIFIC
-        MOV  R3,(R4)    # Register 6: Noise Period
-        MOVB (R5)+,(R4) # Value: 5-bit period control
+        MOV  R3, (R4)    # Register 6: Noise Period
+        MOVB (R5)+, (R4) # Value: 5-bit period control
   .else # No noise. But R8 must still be set.
         INC  R5
   .endif
 
         INC  R3
-        MOV  R3,(R4)    # Register 7: Enable, inverted
+        MOV  R3, (R4)    # Register 7: Enable, inverted
        .equiv PSGReg7, .+2
-        MOVB $0,(R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
+        MOVB $0, (R4) # Value: IO | IOB | IOA | / Noise | C | B | A | / Tone | C | B | A |
 
         INC  R3
-        MOV  R3,(R4)    # Register 8: Channel A Amplitude
-        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+        MOV  R3, (R4)    # Register 8: Channel A Amplitude
+        MOVB (R5)+, (R4) # Value: | M | L3 | L2 | L1 | L0 |
 
         INC  R3
-        MOV  R3,(R4)    # Register 9: Channel B Amplitude
-        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+        MOV  R3, (R4)    # Register 9: Channel B Amplitude
+        MOVB (R5)+, (R4) # Value: | M | L3 | L2 | L1 | L0 |
 
         INC  R3
-        MOV  R3,(R4)    # Register 10: Channel C Amplitude
-        MOVB (R5)+,(R4) # Value: | M | L3 | L2 | L1 | L0 |
+        MOV  R3, (R4)    # Register 10: Channel C Amplitude
+        MOVB (R5)+, (R4) # Value: | M | L3 | L2 | L1 | L0 |
 
   .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC
         INC  R3
-        MOV  R3,(R4)    # Register 11: Envelope Period
-        MOVB (R5)+,(R4) # Value: 8-bit Fine Tune E
+        MOV  R3, (R4)    # Register 11: Envelope Period
+        MOVB (R5)+, (R4) # Value: 8-bit Fine Tune E
 
         INC  R3
-        MOV  R3,(R4)    # Register 12: Envelope Period
-        MOVB (R5)+,(R4) # Value: 8-bit Coarse Tune E
+        MOV  R3, (R4)    # Register 12: Envelope Period
+        MOVB (R5)+, (R4) # Value: 8-bit Coarse Tune E
 
-        MOV  (R5),R2
+        MOV  (R5), R2
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
-        MOV  (PC)+,R0; PSGReg13_OldValue: .word 0xFF
+       .equiv PSGReg13_OldValue, .+2
+        MOV  $0xFF, R0
         # 0 = no retrig.
         # Else, should be >0xf to be sure the old value becomes a sentinel
         # (i.e. unreachable) value.
-        BIS  (PC)+,R0; Retrig: .word 0
+       .equiv Retrig, .+2
+        BIS  $0, R0
         # Is the new value still the same?
         # If yes, the new value must not be set again.
-        CMP  R2,R0
+        CMP  R2, R0
         BEQ  PSGReg13_End
     .else # PLY_CFG_UseRetrig
-        CMP  R2,(PC)+; PSGReg13_OldValue: .word 0xFF
+       .equiv PSGReg13_OldValue, .+2
+        CMP  R2, $0xFF
         BEQ  PSGReg13_End
     .endif # PLY_CFG_UseRetrig # CONFIG SPECIFIC
-        MOV  R2,@$PSGReg13_OldValue
+        MOV  R2, PSGReg13_OldValue
 
         INC  R3
-        MOV  R3,(R4) # Register 13: Envelope Shape/Cycle
-        MOVB R2,(R4) # value: | Cont. |  Att.  |  Alt.  |  Hold |
+        MOV  R3, (R4) # Register 13: Envelope Shape/Cycle
+        MOVB R2, (R4) # value: | Cont. |  Att.  |  Alt.  |  Hold |
 
     .ifdef PLY_CFG_UseRetrig # CONFIG SPECIFIC
-        CLR  @$Retrig
+        CLR  Retrig
     .endif # PLY_CFG_UseRetrig # CONFIG SPECIFIC
 PSGReg13_End:
   .endif # PLY_CFG_UseHardwareSounds
@@ -1223,11 +1243,11 @@ end_of_the_send:
 Channel\cN\()_MaybeEffects:
         # There is one wait in all cases.
         # CLR  R0 # R0 is supposed to be 0.
-        MOV  R0,@$Channel\cN\()_WaitCounter
+        MOV  R0, Channel\cN\()_WaitCounter
   .ifndef PLY_CFG_UseEffects # CONFIG SPECIFIC
         JMP  Channel\cN\()_BeforeEnd_StoreCellPointer
   .else
-        BIT  $0x40,R2 # Effects?
+        BIT  $0x40, R2 # Effects?
        .jmp  ZE, Channel\cN\()_BeforeEnd_StoreCellPointer
         # Manage effects.
 
@@ -1237,7 +1257,7 @@ Channel\cN\()_MaybeEffects:
 Channel\cN\()_ReadEffects: # playerAkg/sources/PlayerAkg.asm:2250
         MOV  $Channel\cN\()_PlayInstrument_RelativeModifierAddress, R2
         MOV  $Channel\cN\()_SoundStream_RelativeModifierAddress, R3
-        MOV  $Channel\cN\()_BeforeEnd_StoreCellPointer, @$Channel_ReadEffects_EndJump
+        MOV  $Channel\cN\()_BeforeEnd_StoreCellPointer, Channel_ReadEffects_EndJump
         # Only adds a jump if this is not the last channel,
         # as the code only need to jump below.
     .if \cN != 3
@@ -1264,43 +1284,45 @@ Channel_ReadEffects:
        .=Channel3_ReadEffectsEnd
 
         CLR  R4
-        BISB (R5)+,R4 # Reads the effect block.
+        BISB (R5)+, R4 # Reads the effect block.
         ASLB R4       #  It may be an index or a relative address.
         BCS  Channel_ReadEffects_RelativeAddress
 
         # Index.
         # The index is already *2.
-        MOV  0(R4),R4 # Gets the address referred by the table.
-       .equiv Channel_ReadEffects_EffectBlocks1, . - 2
+       .equiv Channel_ReadEffects_EffectBlocks1, .+2
+        MOV  0(R4), R4 # Gets the address referred by the table.
 
 Channel_RE_EffectAddressKnown:
         # R4 points on the current effect block header/data.
-        MOVB (R4)+,R0 # Gets the effect number/more effect flag.
+        MOVB (R4)+, R0 # Gets the effect number/more effect flag.
         # Stores the flag indicating whether there are more effects.
-        MOVB R0,@$Channel_RE_ReadNextEffectInBlock
+        MOVB R0, Channel_RE_ReadNextEffectInBlock
 
         # Gets the effect number.
-        BIC  $0xFF01,R0       # Effect is already * 2.
+        BIC  $0xFF01, R0       # Effect is already * 2.
         JMP  @EffectTable(R0) # Jumps to the effect code.
 
         # All the effects return here.
 Channel_RE_EffectReturn:
         # Is there another effect?
         # Bit 0 indicates whether there are more effects.
-        RORB (PC)+; Channel_RE_ReadNextEffectInBlock: .word 0
+       .equiv Channel_RE_ReadNextEffectInBlock, .+2
+        RORB $0
         BCS  Channel_RE_EffectAddressKnown
 
         # No more effects.
 
-        JMP  @(PC)+ # Channel1/2/3_BeforeEnd_StoreCellPointer
-        Channel_ReadEffects_EndJump: .word 0
+       .equiv Channel_ReadEffects_EndJump, .+2
+        JMP  @$0 # Channel1/2/3_BeforeEnd_StoreCellPointer
 
 
 Channel_ReadEffects_RelativeAddress:
         ASR  R4       # R0 was the relative MSB. Only 7 relevant bits.
         SWAB R4
-        BISB (R5)+,R4 # Reads the relative LSB.
-        ADD  (PC)+,R4; Channel_ReadEffects_EffectBlocks2: .word 0
+        BISB (R5)+, R4 # Reads the relative LSB.
+       .equiv Channel_ReadEffects_EffectBlocks2, .+2
+        ADD  $0, R4
         BR   Channel_RE_EffectAddressKnown
   .endif # PLY_CFG_UseEffects # playerAkg/sources/PlayerAkg.asm:2359 #-------}}}
 
@@ -1333,8 +1355,8 @@ Channel_ReadEffects_RelativeAddress:
 .equiv BitForNoise, 0b00100000
 
 ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
-        MOVB (R5)+,R0 # Gets the first byte of the cell.
-        MOV  R0,R1    # Stores the first byte, handy in many cases.
+        MOVB (R5)+, R0 # Gets the first byte of the cell.
+        MOV  R0, R1    # Stores the first byte, handy in many cases.
 
         # What type if the cell?
         # First bit of the type.
@@ -1355,25 +1377,25 @@ ReadInstrumentCell: # playerAkg/sources/PlayerAkg.asm:2391
         * "No soft, no hard". *
         * * * * * * * * * * * */
 NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
-        BIC  $0xFFF0,R0 # Necessary, we don't know what crap is in the 4th bit of A.
-        SUB  R2,R0      # Decreases the volume, watching for overflow.
+        BIC  $0xFFF0, R0 # Necessary, we don't know what crap is in the 4th bit of A.
+        SUB  R2, R0      # Decreases the volume, watching for overflow.
         BCC  10$        # Checks for overflow.
         CLR  R0
-10$:    MOV  R0,R2      # Sets the volume.
+10$:    MOV  R0, R2      # Sets the volume.
 
   .ifdef PLY_CFG_NoSoftNoHard_Noise # CONFIG SPECIFIC #----------------------{{{
         ROLB R1 # Noise?
         BCC  NSNH_NoNoise
         # Noise
-        MOVB (R5)+,@$PSGReg6
-        BIS  $BitForSound,@$PSGReg7 # Noise, no sound (both non-default values).
-        BIC  $BitForNoise,@$PSGReg7
+        MOVB (R5)+, PSGReg6
+        BIS  $BitForSound, PSGReg7 # Noise, no sound (both non-default values).
+        BIC  $BitForNoise, PSGReg7
 
         RETURN
      NSNH_NoNoise:
   .endif # PLY_CFG_NoSoftNoHard_Noise #--------------------------------------}}}
 
-        BIS  $BitForSound,@$PSGReg7 # ;No noise (default), no sound.
+        BIS  $BitForSound, PSGReg7 # ;No noise (default), no sound.
 
         RETURN
 
@@ -1384,11 +1406,11 @@ NoSoftNoHard: # playerAkg/sources/PlayerAkg.asm:2420
   .ifdef PLY_CFG_SoftOnly # CONFIG SPECIFIC
 Soft: # playerAkg/sources/PlayerAkg.asm:2453
         # Calculates the volume.
-        BIC  $0xFFF0,R0 # Necessary, we don't know what crap is in the 4th bit of A.
-        SUB  R2,R0      # Decreases the volume, watching for overflow.
+        BIC  $0xFFF0, R0 # Necessary, we don't know what crap is in the 4th bit of A.
+        SUB  R2, R0      # Decreases the volume, watching for overflow.
         BCC  10$        # Checks for overflow.
         CLR  R0
-10$:    MOV  R0,R2      # Sets the volume.
+10$:    MOV  R0, R2      # Sets the volume.
   .endif # PLY_CFG_SoftOnly
 
   .ifdef UseSoftOnlyOrHardOnly #---------------------------------------------{{{
@@ -1399,26 +1421,26 @@ SoftOnly_HardOnly_TestSimple_Common: # CONFIG SPECIFIC # playerAkg/sources/Playe
         BCC  S_NotSimple
         # Simple.
         # WARNING, the following code must NOT modify the Carry!
-        MOV  $0,-(SP) # This will force the noise to 0.
+        MOV  $0, -(SP) # This will force the noise to 0.
         BR   S_AfterSimpleTest
 
 S_NotSimple: # playerAkg/sources/PlayerAkg.asm:2471
         # Not simple. Reads and keeps the next byte, containing the noise.
         # WARNING, the following code must NOT modify the Carry!
-        MOVB (R5)+,R1
-        MOV  R1,-(SP)
+        MOVB (R5)+, R1
+        MOV  R1, -(SP)
 S_AfterSimpleTest:
 
         CALL S_Or_H_CheckIfSimpleFirst_CalculatePeriod
 
     .ifdef UseSoftOnlyOrHardOnly_Noise # CONFIG SPECIFIC #-------------------{{{
-        MOV  (SP)+,R0 # Noise?
-        BIC  $0xFFE0,R0
+        MOV  (SP)+, R0 # Noise?
+        BIC  $0xFFE0, R0
         BZE  1237$ # if noise not present, sound present, we can stop here,
                    # R7 is fine.
         # Noise is present
-        MOVB R0, @$PSGReg6
-        BIC  $BitForNoise, @$PSGReg7
+        MOVB R0, PSGReg6
+        BIC  $BitForNoise, PSGReg7
     .endif # UseSoftOnlyOrHardOnly_Noise #-----------------------------------}}}
 
 1237$:  RETURN
@@ -1435,25 +1457,25 @@ HardToSoft:
         # It must be divided to get the software frequency.
 
         # The hardware period can be stored.
-        MOV  R3,@$PSGHardwarePeriod_Instr
+        MOV  R3, PSGHardwarePeriod_Instr
 
         # We have the negated ratio calculated and the primary period too.
         # It must be divided to get the hardware frequency.
-        ASH  R0,R3
+        ASH  R0, R3
 
         # Any Software pitch shift?
      .ifdef PLY_CFG_HardToSoft_SoftwarePitch # CONFIG SPECIFIC
-        MOV  R1,R0
+        MOV  R1, R0
         ROLB R0
         BCC  SH_NoSoftwarePitchShift
 
         # Pitch shift. Reads it.
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        ADD  R0,R3
+        ADD  R0, R3
 SH_NoSoftwarePitchShift:
      .endif # PLY_CFG_HardToSoft_SoftwarePitch
 
@@ -1466,7 +1488,8 @@ SH_NoSoftwarePitchShift:
         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2575
         # Loops to the "empty" instrument, and makes another iteration.
-        MOV  (PC)+,R5; EmptyInstrumentDataPt: .word 0
+       .equiv EmptyInstrumentDataPt, .+2
+        MOV  $0, R5
 
         # No need to read the data, consider a void value.
         INC  R5
@@ -1488,30 +1511,30 @@ StH_Or_EndWithoutLoop: # playerAkg/sources/PlayerAkg.asm:2596
 
         CALL StoH_HToS_SandH_Common
         # instrument period is calculated, so R4 is finally free to use
-        MOV  R3,R4
+        MOV  R3, R4
         # We have the negated ratio calculated and the primary period too.
         # It must be divided to get the hardware frequency.
-        ASH  R0,R4
+        ASH  R0, R4
         ADC  R4
 
     .ifdef PLY_CFG_SoftToHard_HardwarePitch # CONFIG SPECIFIC #--------------{{{
        .error "1524"
         # Gets R1, we need the bit to know if a hardware pitch shift is added.
-        MOV  R1,R0
+        MOV  R1, R0
         # Any Hardware pitch shift?
         ROLB R0
         BCC  SH_NoHardwarePitchShift
         # Pitch shift. Reads it.
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        ADD  R0,R4
+        ADD  R0, R4
 SH_NoHardwarePitchShift:
     .endif # PLY_CFG_SoftToHard_HardwarePitch #------------------------------}}}
 
-        MOV  R4,@$PSGHardwarePeriod_Instr
+        MOV  R4, PSGHardwarePeriod_Instr
 
         RETURN # out of ReadInsrumentCell
   .endif
@@ -1533,16 +1556,16 @@ S_Or_H_Or_SaH_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2687
         *------------------*/
         # Saves the note and track pitch, because the first pass below will
         # modify it, we need it for the second pass.
-        MOV  R4,-(SP)
-        MOV  R3,-(SP)
+        MOV  R4, -(SP)
+        MOV  R3, -(SP)
 
         CALL StoH_HToS_SandH_Common
         # We have now calculated the hardware frequency. Stores it.
-        MOV  R3,@$PSGHardwarePeriod_Instr
+        MOV  R3, PSGHardwarePeriod_Instr
 
         # Get back the note and track pitch for the second pass.
-        MOV  (SP)+,R3
-        MOV  (SP)+,R4
+        MOV  (SP)+, R3
+        MOV  (SP)+, R4
         # Now calculate the software frequency.
         ROLB R1 # Simple sound? Used by the sub-code.
         JMP  S_Or_H_CheckIfSimpleFirst_CalculatePeriod # That's all!
@@ -1563,34 +1586,35 @@ H_Or_EndWithLoop: # playerAkg/sources/PlayerAkg.asm:2725
         *     "Hard only".    *
         * * * * * * * * * * * */
 
-        MOV  $16,R2 # Sets the hardware volume.
+        MOV  $16, R2 # Sets the hardware volume.
 
         # Retrig?
         RORB R0
     .ifdef PLY_CFG_HardOnly_Retrig # CONFIG SPECIFIC
         BCC  H_AfterRetrig
         # Retrig is only set if we are on the first step of the instrument!
-        TST  (PC)+; R_Retrig: .word 0
+       .equiv R_Retrig, .+2
+        TST  $0
         BNZ  H_AfterRetrig
-        MOV  R2,@$Retrig
+        MOV  R2, Retrig
 H_AfterRetrig:
     .endif
 
         # Calculates the hardware envelope.
         # The value given is from 8-15, but encoded as 0-7.
-        BIC  $0177770,R0
-        ADD  $8,R0
-        MOV  R0,@$PSGReg13_Instr
+        BIC  $0177770, R0
+        ADD  $8, R0
+        MOV  R0, PSGReg13_Instr
 
         # Use the code of Soft Only to calculate the period and the noise.
         CALL SoftOnly_HardOnly_TestSimple_Common
 
         # The period is actually an hardware period.
         # We don't care about the software period, the sound channel is cut.
-        MOV  R3,@$PSGHardwarePeriod_Instr
+        MOV  R3, PSGHardwarePeriod_Instr
 
         # Stops the sound.
-        BIS  $BitForSound,@$PSGReg7
+        BIS  $BitForSound, PSGReg7
 
         RETURN # from ReadInstrumentCell
   .endif # PLY_CFG_HardOnly
@@ -1605,7 +1629,7 @@ H_AfterRetrig:
 EndWithLoop:
         # Loops to the encoded pointer, and makes another iteration.
         INC  R5      # align on word boundary
-        MOV  (R5),R5 # NOTE: may not work on a computer other than UKNC
+        MOV  (R5), R5 # NOTE: may not work on a computer other than UKNC
         JMP  ReadInstrumentCell
   .endif # PLY_CFG_UseInstrumentLoopTo
 
@@ -1636,8 +1660,8 @@ S_Or_H_CheckIfSimpleFirst_CalculatePeriod:
         # Calculates the note period from the note of the track.
         # This is the same code as below.
         ASLB R3
-        MOV  PeriodTable(R3),R3
-        ADD  R4,R3
+        MOV  PeriodTable(R3), R3
+        ADD  R4, R3
         # Important: the bits must be shifted so that R1 is in the same state
         # as if it were not a "simple" sound.
         ROLB R1
@@ -1660,10 +1684,10 @@ S_Or_H_NextByte: # playerAkg/sources/PlayerAkg.asm:2835
         ROLB R1
     .ifdef UseInstrumentArpeggios # CONFIG SPECIFIC
         BCC  S_Or_H_AfterArpeggio
-        MOVB (R5)+,R0 # can be negative, sign extension is welcome
-        ADD  R0,R3 # We don't care about overflow, no time for that.
+        MOVB (R5)+, R0 # can be negative, sign extension is welcome
+        ADD  R0, R3 # We don't care about overflow, no time for that.
         # the most significant byte has to be cleared if the result is negative
-        BIC  $0xFF00,R3
+        BIC  $0xFF00, R3
 S_Or_H_AfterArpeggio:
     .endif # UseInstrumentArpeggios
 
@@ -1673,19 +1697,19 @@ S_Or_H_AfterArpeggio:
         BCC  S_Or_H_AfterPitch
         # Reads the pitch. Slow, but shouldn't happen so often.
         CLR  R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        BISB (R5)+,R0
+        BISB (R5)+, R0
         SWAB R0
-        ADD  R0,R4 # Adds the cell pitch to the track pitch
+        ADD  R0, R4 # Adds the cell pitch to the track pitch
 S_Or_H_AfterPitch:
     .endif # UseInstrumentPitchs --------------------------------------------}}}
         # Calculates the note period from the note of the track.
         # note + arpeggio may be over 127 (but not over 127+127)
         # and we want the same behavior as on 8-bit CPU
         ASLB R3
-        MOV  PeriodTable(R3),R3
-        ADD  R4,R3
+        MOV  PeriodTable(R3), R3
+        ADD  R4, R3
 
 RETURN
   .endif # UseInstrumentForcedPeriodsOrArpeggiosOrPitchs
@@ -1694,9 +1718,9 @@ RETURN
 S_Or_H_ForcedPeriod: # playerAkg/sources/PlayerAkg.asm:2893
         # Reads the period. A bit slow, but doesn't happen often.
         CLR  R3
-        BISB (R5)+,R3
+        BISB (R5)+, R3
         SWAB R3
-        BISB (R5)+,R3
+        BISB (R5)+, R3
         SWAB R3
 
         # The pitch and arpeggios have been skipped, since the period is forced,
@@ -1717,7 +1741,7 @@ RETURN
         #            (hardware for SoftTohard, software for HardToSoft).
   .ifdef PLY_CFG_UseHardwareSounds # CONFIG SPECIFIC # playerAkg/sources/PlayerAkg.asm:2917
 StoH_HToS_SandH_Common:
-        MOV  $16,R2 # Sets the hardware volume.
+        MOV  $16, R2 # Sets the hardware volume.
 
         # Retrig?
         RORB R0
@@ -1728,32 +1752,32 @@ StoH_HToS_SandH_Common:
 
         # Calculates the hardware envelope.
         # The value given is from 8-15, but encoded as 0-7.
-        BIC  $0177770,R0
-        ADD  $8,R0
-        MOV  R0,@$PSGReg13_Instr
+        BIC  $0177770, R0
+        ADD  $8, R0
+        MOV  R0, PSGReg13_Instr
 
         # Noise? If yes, reads the next byte.
         ROLB R1 # NOTE: is this correct register???
     .ifdef UseNoise_StoH_HtoS_SandH # CONFIG SPECIFIC
         BCC  SHoHS_AfterNoise
         # Noise is present.
-        MOVB (R5)+, @$PSGReg6
-        BIC  $BitForNoise, @$PSGReg7 # Noise present.
+        MOVB (R5)+, PSGReg6
+        BIC  $BitForNoise, PSGReg7 # Noise present.
 SHoHS_AfterNoise:
     .endif # UseNoise_StoH_HtoS_SandH
 
         # Read the next data byte.
-        MOVB (R5)+,R0
-        MOV  R0,R1
+        MOVB (R5)+, R0
+        MOV  R0, R1
         # Simple (no need to test the other bits)?
         # The carry is transmitted to the called code below.
         ROLB R1
         # Call another common subcode.
         CALL S_Or_H_CheckIfSimpleFirst_CalculatePeriod
         # Let's calculate the hardware frequency from it.
-        BIC  $0177770,R0
+        BIC  $0177770, R0
         # convert the inverted ratio to number of right shifts for use with ASH
-        SUB  $7,R0
+        SUB  $7, R0
 RETURN
   .endif # PLY_CFG_UseHardwareSounds
 
@@ -1869,7 +1893,7 @@ Effect_ResetFullVolume: # playerAkg/sources/PlayerAkg.asm:3087
         BR   Effect_ResetVolume_AfterReading
 
 Effect_Reset:
-        MOVB (R4)+,R0
+        MOVB (R4)+, R0
 
 Effect_ResetVolume_AfterReading:
        .set offset, Channel1_InvertedVolumeInteger - Channel1_SoundStream_RelativeModifierAddress
@@ -1921,13 +1945,13 @@ Effect_Volume: # playerAkg/sources/PlayerAkg.asm:3123
 
   .ifdef PLY_AKS_UseEffect_Arpeggio # CONFIG SPECIFIC #----------------------{{{
 Effect_ArpeggioTable: # playerAkg/sources/PlayerAkg.asm:3137
-        MOVB (R4)+,R1 # Reads the arpeggio table index.
+        MOVB (R4)+, R1 # Reads the arpeggio table index.
         ASL  R1
-        MOV  0(R1),R1 # Finds the address of the Arpeggio.
-       .equiv ArpeggiosTable, .-2
+       .equiv ArpeggiosTable, .+2
+        MOV  0(R1), R1 # Finds the address of the Arpeggio.
 
         # Reads the speed.
-        MOVB (R1)+,R0
+        MOVB (R1)+, R0
        .set offset, Channel1_ArpeggioTableSpeed - Channel1_SoundStream_RelativeModifierAddress
         MOVB R0, offset(R3)
        .set offset, Channel1_ArpeggioBaseSpeed - Channel1_SoundStream_RelativeModifierAddress
@@ -1955,13 +1979,13 @@ Effect_ArpeggioTableStop:
  .ifdef PLY_CFG_UseEffect_PitchTable # CONFIG SPECIFIC #---------------------{{{
         # Pitch table. Followed by the Pitch Table index.
 Effect_PitchTable: # playerAkg/sources/PlayerAkg.asm:3182
-        MOVB (R4)+,R1 # Reads the Pitch table index.
+        MOVB (R4)+, R1 # Reads the Pitch table index.
         ASL  R1
-        MOV  0(R1),R1 # Finds the address of the Pitch
-       .equiv PitchesTable, .-2
+       .equiv PitchesTable, .+2
+        MOV  0(R1), R1 # Finds the address of the Pitch
 
         # Reads the speed.
-        MOV  (R1)+,R0
+        MOV  (R1)+, R0
        .set offset, Channel1_PitchTableSpeed - Channel1_SoundStream_RelativeModifierAddress
         MOV  R0, offset(R3)
        .set offset, Channel1_PitchBaseSpeed - Channel1_SoundStream_RelativeModifierAddress
@@ -2080,27 +2104,27 @@ Effect_PitchStop: # playerAkg/sources/PlayerAkg.asm:3287
         # Glide, with a note.
 Effect_GlideWithNote: # playerAkg/sources/PlayerAkg.asm:3295
         # Reads the note to reach.
-        MOVB (R4)+,R1
+        MOVB (R4)+, R1
         # Finds the period related to the note, stores it.
         ASLB R1 # The note is 7 bits only, so it fits.
-        MOV  PeriodTable(R1),R1 # R1 = period to reach.
+        MOV  PeriodTable(R1), R1 # R1 = period to reach.
 
        .set offset, Channel1_GlideToReach - Channel1_SoundStream_RelativeModifierAddress
         MOV  R1, offset(R3)
 
         # Calculates the period of the current note to calculate the difference.
        .set offset, Channel1_TrackNote - Channel1_PlayInstrument_RelativeModifierAddress
-        MOV  offset(R2),R0
+        MOV  offset(R2), R0
         ASLB R0
-        MOV  PeriodTable(R0),R0 # R0 = current period.
+        MOV  PeriodTable(R0), R0 # R0 = current period.
 
         # Adds the current Track Pitch to have the current period, else
         # the direction may be biased.
        .set offset, Channel1_Pitch - Channel1_SoundStream_RelativeModifierAddress
-        ADD  offset(R3),R0
+        ADD  offset(R3), R0
 
         # What is the difference?
-        CMP  R0,R1
+        CMP  R0, R1
         BLO  Effect_Glide_PitchDown
 
         # Pitch up.
@@ -2190,7 +2214,7 @@ Effect_ForceArpeggioSpeed: # playerAkg/sources/PlayerAkg.asm:3404
         # Unlikely, but...
         # Reads and sets the new speed.
        .set offset, Channel1_ArpeggioTableSpeed - Channel1_SoundStream_RelativeModifierAddress
-        MOVB (R4)+,offset(R3)
+        MOVB (R4)+, offset(R3)
     .else
         INC  R4
     .endif # UseEffect_Arpeggio
@@ -2207,7 +2231,7 @@ Effect_ForcePitchSpeed: # playerAkg/sources/PlayerAkg.asm:3420
         # Unlikely, but...
         # Reads and sets the new speed.
        .set offset, Channel1_PitchTableSpeed - Channel1_SoundStream_RelativeModifierAddress
-        MOVB (R4)+,offset(R3)
+        MOVB (R4)+, offset(R3)
     .else
         INC  R4
     .endif # PLY_CFG_UseEffect_PitchTable
@@ -2239,3 +2263,178 @@ PeriodTable: # playerAkg/sources/PlayerAkg.asm:3450
     .word   13,   13,   12,   11,   11,   10,    9,    9,    8,    8,    7,    7 # Octave 9
     .word    7,    6,    6,    6,    5,    5,    5,    4                         # Octave 10
 PeriodTable_End:
+
+# Buffer used for the ROM player. This part needs to be set to RAM.
+# PLY_AKG_ROM_Buffer must be set.
+.ifdef PLY_AKG_Rom
+  .equiv BufferOffset = 0
+
+# Generic data.
+  .equiv CurrentSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv BaseNoteIndex, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PatternDecreasingHeight, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv TickDecreasingCounter, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+
+  .ifdef PLY_CFG_UseSpeedTracks
+    SpeedTrack_WaitCounter, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_CFG_UseEventTracks
+    .equiv EventTrack_WaitCounter, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_CFG_UseHardwareSounds
+    .equiv PSGReg13_OldValue, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv PSGReg13_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .ifdef PLY_CFG_UseRetrig
+      .equiv Retrig, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .endif
+  .endif
+  .equiv Channel_RE_ReadNextEffectInBlock, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+
+        # Words
+  .equiv ReadLinker_PtLinker, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .ifdef PLY_CFG_UseSpeedTracks
+    .equiv SpeedTrack_PtTrack, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_CFG_UseEventTracks
+    .equiv EventTrack_PtTrack, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_AKS_UseEffect_Arpeggio
+    .equiv ArpeggiosTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_CFG_UseEffect_PitchTable
+    .equiv PitchesTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+    .equiv InstrumentsTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .ifdef PLY_CFG_UseEffects
+     # For ROM, only one is used, the second is the same, but it makes it faster on non-ROM as it avoid reading the memory.
+    .equiv Channel_ReadEffects_EffectBlocks1, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .equiv EmptyInstrumentDataPt, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv SaveSp, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg01_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg23_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg45_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg6_8_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg6, Reg6_8_Instr + 0
+  .equiv PSGReg8, Reg6_8_Instr + 1
+  .equiv PSGReg9_10_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv PSGReg9, Reg9_10_Instr + 0
+  .equiv PSGReg10, Reg9_10_Instr + 1
+  .ifdef PLY_CFG_UseHardwareSounds
+    .equiv PSGHardwarePeriod_Instr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+    .equiv Channel_ReadEffects_EndJumpInstrAndAddress, ROM_Buffer + BufferOffset : BufferOffset = BufferOffset + 3      # 3 bytes. JP xxxx
+  .ifdef PLY_CFG_UseEffect_PitchGlide
+    .equiv Effect_GlideWithNoteSaveDE, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+    .equiv TempPlayInstrumentJumpInstrAndAddress, ROM_Buffer + BufferOffset : BufferOffset = BufferOffset + 3      # 3 bytes. JP xxxx
+
+        # Section specific to each channel.
+        cN = 0
+       .rept 3
+  .equiv Channel\cN\()_SoundStream_RelativeModifierAddress, ROM_Buffer + BufferOffset
+  .equiv Channel\cN\()_PlayInstrument_RelativeModifierAddress, ROM_Buffer + BufferOffset
+
+        # Bytes
+  .ifdef PLY_CFG_UseTranspositions
+    .equiv Channel\cN\()_Transposition, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .equiv Channel\cN\()_WaitCounter, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .ifdef UseEffect_VolumeSlide
+    .equiv Channel\cN\()_IsVolumeSlide, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_AKS_UseEffect_Arpeggio
+    .equiv Channel\cN\()_IsArpeggioTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_CFG_UseEffect_PitchTable
+    .equiv Channel\cN\()_IsPitchTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+    .equiv Channel\cN\()_IsPitch, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_CFG_UseEffect_ForceInstrumentSpeed
+    .equiv Channel\cN\()_InstrumentOriginalSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+  .equiv Channel\cN\()_InstrumentSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_InstrumentStep, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .ifdef PLY_AKS_UseEffect_Arpeggio
+    .equiv Channel\cN\()_ArpeggioTableCurrentStep, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_GeneratedCurrentArpNote, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_ArpeggioBaseSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_ArpeggioTableSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_CFG_UseEffect_PitchTable
+    .equiv Channel\cN\()_PitchTableCurrentStep, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchBaseSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchTableSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+        .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+    .equiv Channel\cN\()_PitchTrackDecimal, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchTrackDecimalCounter, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+  .equiv Channel\cN\()_TrackNote, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .ifdef PLY_CFG_UseEffect_PitchGlide
+    .equiv Channel\cN\()_GlideDirection, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        .endif
+  .equiv Channel\cN\()_GeneratedCurrentInvertedVolume, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        # Words
+  .equiv Channel\cN\()_PtTrack, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .ifdef PLY_AKS_UseEffect_Arpeggio
+    .equiv Channel\cN\()_ArpeggioTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_ArpeggioTableBase, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+    .equiv Channel\cN\()_PitchTrack, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+  .ifdef PLY_CFG_UseEffect_PitchTable
+    .equiv Channel\cN\()_PitchTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchTableBase, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+
+  .equiv Channel\cN\()_EffectBlocks1, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_EffectBlocks2, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_InvertedVolumeIntegerAndDecimal, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_Pitch, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_PtInstrument, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_PtBaseInstrument, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .equiv Channel\cN\()_VolumeSlideValue, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+
+  .ifdef PLY_CFG_UseEffect_PitchGlide
+    .equiv Channel\cN\()_GlideToReach, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_Glide_SaveHL, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .endif
+
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+    .equiv Channel\cN\()_PitchTrackDecimalInstr, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchTrackDecimalValue, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+        # The add/sub must be followed by the return JP.
+    .equiv Channel\cN\()_PitchTrackDecimalInstrAndValueReturnJp, ROM_Buffer + BufferOffset : BufferOffset = BufferOffset + 3  # JP xxxx.
+  .endif
+
+  .equiv Channel\cN\()_GeneratedCurrentPitch, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+  .ifdef PLY_AKS_UseEffect_PitchUpOrDownOrGlide
+    .equiv Channel\cN\()_PitchTrackAddOrSbc_16bits, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+          # 3 bytes.
+    .equiv Channel\cN\()_PitchTrackAfterAddOrSbcJumpInstrAndAddress, ROM_Buffer + BufferOffset : BufferOffset = BufferOffset + 3     # 3 bytes. JP xxxx.
+    .equiv Channel\cN\()_PitchTrackIntegerAddOrSub, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_PitchTrackIntegerAfterAddOrSubJumpInstrAndAddress, ROM_Buffer + BufferOffset : BufferOffset = BufferOffset + 3     # 3 bytes. JP xxxx.
+  .endif
+
+        cN = cN + 1
+        .endr
+
+        # The buffers for sound effects (if any), for each channel. They are treated apart, because they must be consecutive.
+  .ifdef MANAGE_SOUND_EFFECTS
+    .equiv PtSoundEffectTable, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+                REPEAT 3, channelNumber
+    .equiv Channel\cN\()_SoundEffectData, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_SoundEffectInvertedVolume, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_SoundEffectCurrentStep, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .equiv Channel\cN\()_SoundEffectSpeed, ROM_Buffer + BufferOffset; BufferOffset = BufferOffset + 2
+    .if channelNumber != 3
+      BufferOffset = BufferOffset + 3 # Padding of 3, but only necessary for channel 1 and 2.
+    .endif
+                REND
+  .endif
+
+        .endif # PLY_AKG_Rom
