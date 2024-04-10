@@ -77,6 +77,13 @@ PLY_SE_InitSoundEffects: # playerSoundEffects/sources/PlayerSoundEffects.asm:193
         MOV  R5,@$PLY_SE_PtSoundEffectTable
         RETURN
 
+PLY_SE_Stop:
+      # All the volumes to 0, all sound/noise channels stopped.
+        CLRB @$PLY_SE_PSGReg8
+        CLR  @$PLY_SE_PSGReg9_10_Instr
+        MOV  $0b00111111, @$PLY_SE_PSGReg7
+        JMP  PLY_SE_SendPSGRegisters
+ 
 # Programs the playing of a sound effect.
 # If a previous one was already playing on the same channel, it is replaced.
 # This does not actually plays the sound effect, but programs its playing.
